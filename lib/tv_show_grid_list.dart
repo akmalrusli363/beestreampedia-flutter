@@ -7,6 +7,7 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:intl/intl.dart';
 import 'package:transparent_image/transparent_image.dart';
 
+import 'constants/constants.dart';
 import 'model/response/tv_show_list_response.dart';
 import 'model/tv_show_data.dart';
 import 'package:http/http.dart' as http;
@@ -84,7 +85,6 @@ class _TvShowGridListState extends State<TvShowGridList> {
     return FutureBuilder<List<TVShowData>>(
         future: _futureTvShowList,
         builder: (context, snapshot) {
-
           if (snapshot.hasData) {
             return buildList(context, snapshot.requireData);
           } else if (snapshot.hasError) {

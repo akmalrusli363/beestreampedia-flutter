@@ -53,18 +53,8 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
   }
 
-  static const String _discoverTvShowLink = 'https://api.themoviedb.org/3/discover/tv';
-  static const String _nowAiringTvShowLink = 'https://api.themoviedb.org/3/tv/airing_today';
-  static const String _trendingTvShowLink = 'https://api.themoviedb.org/3/trending/tv/week';
-  static const String _popularTvShowLink = 'https://api.themoviedb.org/3/tv/popular';
-
   int _selectedIndex = 0;
-  final _categoryLink = [
-    _discoverTvShowLink,
-    _trendingTvShowLink,
-    _nowAiringTvShowLink,
-    _popularTvShowLink,
-  ];
+  final _tvCatalogCategory = TvCatalogCategory.values;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -82,37 +72,34 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final currentTab = _tvCatalogCategory[_selectedIndex];
     return Scaffold(
         appBar: AppBar(
-          title: Text(widget.title),
+          title: Text(currentTab.title),
+          backgroundColor: Colors.green,
+          foregroundColor: Colors.white,
         ),
         body: PageView.builder(
           controller: _pageController,
           itemBuilder: (context, index) {
-            return TvShowGridList(fetchUrl: _categoryLink[_selectedIndex]);
+            return TvShowGridList(fetchUrl: currentTab.fetchUrl);
           },
-          itemCount: _categoryLink.length,
+          itemCount: _tvCatalogCategory.length,
         ),
       bottomNavigationBar: buildBottomNavigationBar(context, _onItemTapped, _selectedIndex),
     );
   }
 
   Widget buildBottomNavigationBar(BuildContext context, void Function(int) onItemTapped, int selectedIndex) {
+    final navbarItems = _tvCatalogCategory.map((e) => {
+      (BottomNavigationBarItem(icon: Icon(e.icon), label: e.title))
+    }).expand((set) => set).toList();
     return BottomNavigationBar(
       onTap: onItemTapped,
       currentIndex: selectedIndex,
       fixedColor: Colors.green,
       unselectedItemColor: Colors.grey,
-      items: const [
-        BottomNavigationBarItem(
-            icon: Icon(Icons.explore), label: 'Discover'),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.trending_up), label: 'Trending'),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.live_tv), label: 'Now Airing'),
-        BottomNavigationBarItem(
-            icon: Icon(Icons.star), label: 'Popular'),
-      ],
+      items: navbarItems,
     );
   }
 }
