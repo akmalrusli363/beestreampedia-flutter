@@ -2,16 +2,17 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:beestream_pedia/utils/tv_show_utils.dart';
+import 'package:beestream_pedia/view/common_widgets.dart';
 import 'package:beestream_pedia/view/tv_show_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:transparent_image/transparent_image.dart';
 
 import 'constants/constants.dart';
 import 'model/response/tv_show_list_response.dart';
 import 'model/tv_show_data.dart';
-import 'package:http/http.dart' as http;
 
 class TvShowGridList extends StatefulWidget {
   const TvShowGridList({Key? key, required this.fetchUrl}) : super(key: key);
@@ -46,7 +47,7 @@ class _TvShowGridListState extends State<TvShowGridList> {
   Future<List<TVShowData>> _fetchTvShowList(int page) async {
     final queryParameters = {
       'page': '$page',
-      'language': 'ja-JP',
+      'language': 'en-ID',
     };
     final response = await http.get(
       Uri.parse(widget.fetchUrl).replace(queryParameters: queryParameters),
@@ -111,13 +112,10 @@ class _TvShowGridListState extends State<TvShowGridList> {
   }
 
   Widget buildList(BuildContext context, List<TVShowData> items) {
-    const fixedCardWidth = 300;
-    final deviceWidth = MediaQuery.of(context).size.width;
-    final crossAxisCount = (deviceWidth / fixedCardWidth).round();
-
     return MasonryGridView.count(
         controller: _scrollController,
-        crossAxisCount: max(2, crossAxisCount),
+        crossAxisCount: getCrossAxisGridCountFromScreenSize(context,
+            fixedWidth: 300, minCrossAxisCount: 2),
         mainAxisSpacing: 8.0,
         crossAxisSpacing: 8.0,
         padding: const EdgeInsets.all(8.0),
@@ -129,8 +127,7 @@ class _TvShowGridListState extends State<TvShowGridList> {
   }
 
   Widget tvShowInformationCard(TVShowData item) {
-    final numberFormat = NumberFormat("0.0#", "en_US");
-    final rating = "${numberFormat.format(item.voteAverage)}/10";
+    final rating = "${formatDecimal(item.voteAverage)}/10";
     final contents = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -182,7 +179,8 @@ class _TvShowGridListState extends State<TvShowGridList> {
 
   Route _createRoute(int tvShowId) {
     return PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) => TvShowDetailScreen(
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          TvShowDetailScreen(
         tvShowId: tvShowId,
       ),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
@@ -190,29 +188,14 @@ class _TvShowGridListState extends State<TvShowGridList> {
         const end = Offset.zero;
         const curve = Curves.ease;
 
-        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+        var tween =
+            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
 
         return SlideTransition(
           position: animation.drive(tween),
           child: child,
         );
       },
-    );
-  }
-
-  Widget imageWithPlaceholder(String url) {
-    return Stack(
-      children: <Widget>[
-        const SizedBox(
-            height: 120, child: Center(child: CircularProgressIndicator())),
-        Center(
-          child: FadeInImage.memoryNetwork(
-            placeholder: kTransparentImage,
-            image: url,
-            fit: BoxFit.contain,
-          ),
-        ),
-      ],
     );
   }
 }

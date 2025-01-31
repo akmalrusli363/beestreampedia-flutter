@@ -2,7 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:beestream_pedia/model/response/tv_show_detail_response.dart';
+import 'package:beestream_pedia/model/tv_show_data_wrapper.dart';
+import 'package:beestream_pedia/utils/tv_show_utils.dart';
 import 'package:beestream_pedia/view/common_widgets.dart';
+import 'package:beestream_pedia/view/tv_show_seasons_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -52,29 +55,14 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
           if (snapshot.hasData) {
             return _detailScreen(context, snapshot.requireData);
           } else if (snapshot.hasError) {
-            return SingleChildScrollView(
-                child: Center(
-              child: (Column(
-                children: [
-                  Text(
-                    '${snapshot.error}',
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  Text(
-                    'StackTrace: ${snapshot.stackTrace}',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ],
-              )),
-            ));
+            return errorWithStackTrace(context, snapshot);
           }
           return const Center(child: CircularProgressIndicator());
         });
   }
 
   Widget _detailScreen(BuildContext context, TvShowDetail item) {
-    final numberFormat = NumberFormat("0.0#", "en_US");
-    final rating = "${numberFormat.format(item.voteAverage)}/10";
+    final rating = "${formatDecimal(item.voteAverage)}/10";
     return Scaffold(
       appBar: AppBar(
         title: Text("${item.name} - (${item.originalName})"),
@@ -142,13 +130,18 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
                   ),
                   Text(
                     "Overview",
-                    style: Theme.of(context).textTheme.titleMedium,
+                    style: Theme.of(context).textTheme.headlineMedium,
                   ),
                   Text(
                     item.overview,
-                    style: Theme.of(context).textTheme.bodySmall,
+                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
-                  tvShowSeasonCardList(item.seasons)
+                  Text(
+                    "Seasons List",
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  tvShowSeasonCardList(
+                      TVShowDataWrapper.fromTvShowDetail(item), item.seasons)
                 ]),
               )
             ],
@@ -158,7 +151,8 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
     );
   }
 
-  Widget tvShowSeasonCardList(List<TvShowSeason> seasons) {
+  Widget tvShowSeasonCardList(
+      TVShowDataWrapper wrapper, List<TvShowSeason> seasons) {
     return (seasons.isNotEmpty)
         ? ConstrainedBox(
             constraints: const BoxConstraints(maxHeight: 450),
@@ -169,22 +163,30 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
                 itemCount: seasons.length,
                 shrinkWrap: true,
                 itemBuilder: (context, index) {
-                  return tvShowSeasonCard(seasons[index]);
+                  return tvShowSeasonCard(seasons[index], () {
+                    Navigator.push(
+                      context,
+                      _gotoSeasonDetailScreen(
+                          wrapper, (seasons[index].seasonNumber ?? 0)),
+                    );
+                  });
                 }),
           )
         : Container();
   }
 
-  Widget tvShowSeasonCard(TvShowSeason season) {
+  Widget tvShowSeasonCard(
+      TvShowSeason season, void Function() onSeasonCardClick) {
     final seasonDetail = ConstrainedBox(
         constraints:
             BoxConstraints(maxWidth: 300, maxHeight: 450, minHeight: 200),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (season.posterPath != null)(
-            Expanded(child: imageWithPlaceholder(season.getPosterUrl(), height: 300),)
-            ),
+            if (season.posterPath != null)
+              (Expanded(
+                child: imageWithPlaceholder(season.getPosterUrl(), height: 300),
+              )),
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Column(children: [
@@ -193,14 +195,13 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
                   style: Theme.of(context).textTheme.headlineSmall,
                   textAlign: TextAlign.center,
                 ),
+                if (season.airDate != null && season.airDate!.isNotEmpty)
+                  (Text(
+                    "Air date: ${season.airDate}",
+                    style: Theme.of(context).textTheme.titleMedium,
+                  )),
                 Text(
-                  "Air date: ${season.airDate}",
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium,
-                ),
-                Text(
-                  "${season.seasonNumber} - ${season.episodeCount} episodes",
+                  "Season ${season.seasonNumber} - ${season.episodeCount} episodes",
                   style: Theme.of(context)
                       .textTheme
                       .titleMedium
@@ -209,38 +210,45 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
                 Text(
                   season.overview,
                   style: Theme.of(context).textTheme.bodySmall,
+                  maxLines: 5,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ]),
             )
           ],
         ));
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(4.0),
-      ),
-      clipBehavior: Clip.antiAlias,
-      // child: InkWell(
-      child: seasonDetail,
-      // )
-    );
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(4.0),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onSeasonCardClick,
+          child: seasonDetail,
+        ));
   }
 
-  Widget imageWithPlaceholder(String url, {double height = 360}) {
-    return Stack(
-      children: <Widget>[
-        SizedBox(
-            height: height, child: const Center(child: CircularProgressIndicator())),
-        Center(
-          child: FadeInImage.memoryNetwork(
-            placeholder: kTransparentImage,
-            imageErrorBuilder: (context, obj, error)=> Icon(Icons.no_sim_outlined, size: 64,),
-            image: url,
-            height: height,
-            fit: BoxFit.contain,
-          ),
-        ),
-      ],
+  Route _gotoSeasonDetailScreen(TVShowDataWrapper wrapper, int seasonNo) {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) =>
+          TvShowSeasonsDetailScreen(
+        tvShowData: wrapper,
+        seasonNo: seasonNo,
+      ),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        const begin = Offset(0.0, 1.0);
+        const end = Offset.zero;
+        const curve = Curves.ease;
+
+        var tween =
+            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+        return SlideTransition(
+          position: animation.drive(tween),
+          child: child,
+        );
+      },
     );
   }
 }
