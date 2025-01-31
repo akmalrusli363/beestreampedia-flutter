@@ -1,7 +1,15 @@
-import 'package:beestream_pedia/tv_show_grid_list.dart';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
-void main() {
+import 'model/tv_catalog_category.dart';
+import 'network/http_certificate_override.dart';
+import 'tv_show_grid_list.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  HttpOverrides.global = MyHttpOverrides();
+
   runApp(const MyApp());
 }
 
