@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:beestream_pedia/view/tv_show_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:intl/intl.dart';
@@ -45,9 +46,10 @@ class _TvShowGridListState extends State<TvShowGridList> {
   Future<List<TVShowData>> _fetchTvShowList(int page) async {
     final queryParameters = {
       'page': '$page',
+      'language': 'ja-JP',
     };
     final response = await http.get(
-        Uri.parse(widget.fetchUrl).replace(queryParameters: queryParameters),
+      Uri.parse(widget.fetchUrl).replace(queryParameters: queryParameters),
       headers: {
         'Accept': 'application/json',
         HttpHeaders.authorizationHeader: tmdbApiKey,
@@ -89,21 +91,20 @@ class _TvShowGridListState extends State<TvShowGridList> {
             return buildList(context, snapshot.requireData);
           } else if (snapshot.hasError) {
             return SingleChildScrollView(
-              child: Center(
-                child:(Column(
-                  children: [
-                    Text(
-                      '${snapshot.error}',
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    Text(
-                      'StackTrace: ${snapshot.stackTrace}',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                )),
-              )
-            );
+                child: Center(
+              child: (Column(
+                children: [
+                  Text(
+                    '${snapshot.error}',
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  Text(
+                    'StackTrace: ${snapshot.stackTrace}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
+              )),
+            ));
           }
           return const Center(child: CircularProgressIndicator());
         });
@@ -130,45 +131,73 @@ class _TvShowGridListState extends State<TvShowGridList> {
   Widget tvShowInformationCard(TVShowData item) {
     final numberFormat = NumberFormat("0.0#", "en_US");
     final rating = "${numberFormat.format(item.voteAverage)}/10";
+    final contents = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        imageWithPlaceholder(
+          item.getPosterUrl(),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(children: [
+            Text(
+              item.name,
+              style: Theme.of(context).textTheme.headlineSmall,
+              textAlign: TextAlign.center,
+            ),
+            Text(
+              item.originalName,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.apply(fontStyle: FontStyle.italic),
+            ),
+            Text(
+              '$rating (${item.voteCount} votes)',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            Text(
+              item.overview,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ]),
+        )
+      ],
+    );
     return Card(
         elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8.0),
         ),
         clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            imageWithPlaceholder(
-              item.getPosterUrl(),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(children: [
-                Text(
-                  item.name,
-                  style: Theme.of(context).textTheme.headlineSmall,
-                  textAlign: TextAlign.center,
-                ),
-                Text(
-                  item.originalName,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.apply(fontStyle: FontStyle.italic),
-                ),
-                Text(
-                  '$rating (${item.voteCount} votes)',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                Text(
-                  item.overview,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ]),
-            )
-          ],
-        ));
+        child: InkWell(
+            child: contents,
+            onTap: () {
+              Navigator.push(
+                context,
+                _createRoute(item.id),
+              );
+            }));
+  }
+
+  Route _createRoute(int tvShowId) {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) => TvShowDetailScreen(
+        tvShowId: tvShowId,
+      ),
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        const begin = Offset(0.0, 1.0);
+        const end = Offset.zero;
+        const curve = Curves.ease;
+
+        var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+
+        return SlideTransition(
+          position: animation.drive(tween),
+          child: child,
+        );
+      },
+    );
   }
 
   Widget imageWithPlaceholder(String url) {
