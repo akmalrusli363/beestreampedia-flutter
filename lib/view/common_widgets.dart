@@ -126,7 +126,7 @@ Widget chipCountry(BuildContext context, String text, String countryCode) {
 Widget imageWithPlaceholder(String url, {double? height}) {
   final double minEmptyImageHeight = 120;
   return Stack(alignment: Alignment.center, children: <Widget>[
-    CircularProgressIndicator(),
+    Center(child:CircularProgressIndicator()),
     FadeInImage.memoryNetwork(
       placeholder: kTransparentImage,
       imageErrorBuilder: (context, obj, error) => emptyImagePlaceholder(

@@ -141,7 +141,7 @@ class TvEpisodeCardList extends StatelessWidget {
         ? AlignedGridView.count(
             physics: NeverScrollableScrollPhysics(),
             crossAxisCount: getCrossAxisGridCountFromScreenSize(context,
-                fixedWidth: 450, minCrossAxisCount: 1),
+                fixedWidth: 360, minCrossAxisCount: 1),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             itemCount: episodes.length,
             shrinkWrap: true,
