@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:beestream_pedia/model/tmdb_config_enums.dart';
 import 'package:intl/intl.dart';
 
 String getLocaleString() {
@@ -17,4 +18,9 @@ String formatDecimal(num? decimal) {
 
 String formatDate(DateTime date, {String dateFormat = "d MMMM yyyy"}) {
   return DateFormat(dateFormat, getLocaleString()).format(date);
+}
+
+String getTmdbImageUrl({required String? imageUrl, ImageWidthOptions width = ImageWidthOptions.w300}) {
+  const baseImageUrl = 'https://image.tmdb.org/t/p/';
+  return "$baseImageUrl${width.name}/$imageUrl";
 }

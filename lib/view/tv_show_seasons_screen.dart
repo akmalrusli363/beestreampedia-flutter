@@ -7,7 +7,6 @@ import 'package:beestream_pedia/utils/tv_show_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 
 import '../constants/Constants.dart';
 import 'common_widgets.dart';
@@ -73,81 +72,98 @@ class _TvShowSeasonsDetailScreenState extends State<TvShowSeasonsDetailScreen> {
           child: Column(
             children: [
               if (item.posterPath != null && item.posterPath!.isNotEmpty)
-                (imageWithPlaceholder(item.getPosterUrl()))
+                (imageWithPlaceholder(item.getPosterUrl(), height: 360))
               else if (show.posterPath != null && show.posterPath!.isNotEmpty)
-                (imageWithPlaceholder(show.getPosterUrl())),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Column(children: [
-                  Text(
-                    "${show.name} - Season ${item.seasonNumber}",
-                    style: Theme.of(context).textTheme.titleMedium,
-                    textAlign: TextAlign.center,
+                (imageWithPlaceholder(show.getPosterUrl(), height: 360)),
+              Column(children: [
+                Text(
+                  "${show.name} - Season ${item.seasonNumber}",
+                  style: Theme.of(context).textTheme.titleMedium,
+                  textAlign: TextAlign.center,
+                ),
+                Text(
+                  item.name,
+                  style: Theme.of(context).textTheme.headlineMedium,
+                  textAlign: TextAlign.center,
+                ),
+                if (item.voteAverage != null && item.voteAverage! > 0)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      starRating(context, (item.voteAverage ?? 0) / 2, 5),
+                      Text(
+                        "${formatDecimal(item.voteAverage)}/10",
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                    ],
                   ),
+                if (item.airDate != null)
                   Text(
-                    item.name,
-                    style: Theme.of(context).textTheme.headlineMedium,
-                    textAlign: TextAlign.center,
+                    'Premiered at: ${formatDate(item.airDate!)}',
+                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
-                  if (item.voteAverage != null && item.voteAverage! > 0)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        starRating(context, (item.voteAverage ?? 0) / 2, 5),
-                        Text(
-                          "${formatDecimal(item.voteAverage)}/10",
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ],
-                    ),
-                  if (item.airDate != null)
-                    Text(
-                      'Premiered at: ${formatDate(item.airDate!)}',
+                if (item.overview.isNotEmpty)
+                  bigTitleWithContent(
+                    context,
+                    title: "Overview",
+                    child: Text(
+                      item.overview,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
-                  if (item.overview.isNotEmpty)
-                    Column(
-                      children: [
-                        Text(
-                          "Overview",
-                          style: Theme.of(context).textTheme.headlineMedium,
-                        ),
-                        Text(
-                          item.overview,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        )
-                      ],
-                    ),
-                  Text(
-                    "Episodes List",
-                    style: Theme.of(context).textTheme.headlineMedium,
                   ),
-                  tvEpisodeCardList(context, item.episodes)
-                ]),
-              )
+                Text(
+                  "Episodes List",
+                  style: Theme.of(context).textTheme.headlineMedium,
+                ),
+                TvEpisodeCardList(context: context, episodes: item.episodes)
+              ]),
             ],
           ),
         ),
       ),
     );
   }
+}
 
-  Widget tvEpisodeCardList(BuildContext context, List<Episode> episodes) {
+class TvEpisodeCardList extends StatelessWidget {
+  const TvEpisodeCardList({
+    super.key,
+    required this.context,
+    required this.episodes,
+  });
+
+  final BuildContext context;
+  final List<Episode> episodes;
+
+  @override
+  Widget build(BuildContext context) {
     return (episodes.isNotEmpty)
         ? AlignedGridView.count(
-            // gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            physics: NeverScrollableScrollPhysics(),
             crossAxisCount: getCrossAxisGridCountFromScreenSize(context,
-                fixedWidth: 540, minCrossAxisCount: 2),
+                fixedWidth: 450, minCrossAxisCount: 1),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             itemCount: episodes.length,
             shrinkWrap: true,
             itemBuilder: (context, index) {
-              return tvEpisodeCard(context, episodes[index]);
+              return TvEpisodeCard(context: context, episode: episodes[index]);
             })
         : Container();
   }
+}
 
-  Widget tvEpisodeCard(BuildContext context, Episode episode) {
+class TvEpisodeCard extends StatelessWidget {
+  const TvEpisodeCard({
+    super.key,
+    required this.context,
+    required this.episode,
+  });
+
+  final BuildContext context;
+  final Episode episode;
+
+  @override
+  Widget build(BuildContext context) {
     final episodeDetail = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
@@ -156,11 +172,36 @@ class _TvShowSeasonsDetailScreenState extends State<TvShowSeasonsDetailScreen> {
             flex: 0,
             child: Builder(builder: (context) {
               if (episode.stillPath != null && episode.stillPath!.isNotEmpty) {
-                return (imageWithPlaceholder(episode.getThumbnailUrl(),
-                    height: 240));
+                return Center(
+                  child: Stack(
+                    alignment: AlignmentDirectional.bottomEnd,
+                    children: [
+                      (imageWithPlaceholder(episode.getThumbnailUrl())),
+                      Padding(
+                          padding:
+                              EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                          child: Text(
+                            "#${episode.episodeNumber}",
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineLarge
+                                ?.apply(
+                                    fontStyle: FontStyle.italic,
+                                    color: Colors.white,
+                                    shadows: [
+                                  Shadow(
+                                    blurRadius: 10.0,
+                                    color: Colors.black12,
+                                    offset: Offset(2.0, 2.0),
+                                  ),
+                                ]),
+                          ))
+                    ],
+                  ),
+                );
               } else {
                 return (emptyImagePlaceholder(
-                    width: 500, height: 240, placeholderIcon: Icons.tv));
+                    width: 120, height: 160, placeholderIcon: Icons.tv));
               }
             })),
         Flexible(
@@ -189,9 +230,21 @@ class _TvShowSeasonsDetailScreenState extends State<TvShowSeasonsDetailScreen> {
                 child: Row(
                   children: [
                     if (episode.airDate != null)
-                      Text(
-                        "Air date: ${formatDate(episode.airDate!)}",
-                        style: Theme.of(context).textTheme.titleSmall,
+                      Text.rich(
+                        TextSpan(
+                          text: "Air date: ",
+                          children: [
+                            TextSpan(
+                              text: formatDate(episode.airDate!),
+                              style: TextStyle(
+                                  fontWeight: FontWeight.normal,
+                                  fontStyle: FontStyle.italic),
+                            )
+                          ],
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontStyle: FontStyle.italic),
+                        ),
                         textAlign: TextAlign.left,
                       )
                   ],

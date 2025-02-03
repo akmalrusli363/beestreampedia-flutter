@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:country_flags/country_flags.dart';
+import 'package:dash_flags/dash_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:transparent_image/transparent_image.dart';
 
@@ -14,9 +14,40 @@ Widget bigNumberWithCaptions(BuildContext context, num number, String caption) {
       Text(
         caption,
         style: Theme.of(context).textTheme.titleSmall,
+        textAlign: TextAlign.center,
       ),
     ],
   );
+}
+
+Widget bigCountryFlagWithCaptions(
+    BuildContext context, String countryCode, String caption) {
+  return Column(children: [
+    CountryFlag(
+      country: Country.fromCode(countryCode),
+      height: 32,
+    ),
+    Text(
+      caption,
+      style: Theme.of(context).textTheme.titleSmall,
+      textAlign: TextAlign.center,
+    )
+  ]);
+}
+
+Widget bigLanguageFlagWithCaptions(
+    BuildContext context, String languageCode, String caption) {
+  return Column(children: [
+    LanguageFlag(
+      language: Language.fromCode(languageCode),
+      height: 32,
+    ),
+    Text(
+      caption,
+      style: Theme.of(context).textTheme.titleSmall,
+      textAlign: TextAlign.center,
+    )
+  ]);
 }
 
 Widget starRating(BuildContext context, double rating, int maxRating) {
@@ -48,19 +79,30 @@ Widget inlineField(BuildContext context,
     required List<Widget> contents,
     MainAxisAlignment mainAxisAlignment = MainAxisAlignment.center,
     MainAxisSize mainAxisSize = MainAxisSize.min}) {
-  return Row(
-    mainAxisAlignment: mainAxisAlignment,
-    mainAxisSize: mainAxisSize,
+  return Wrap(
+    direction: Axis.horizontal,
+    crossAxisAlignment: WrapCrossAlignment.center,
     children: [
       textField,
-      Flexible(
-          fit: FlexFit.loose,
-          child: Wrap(
-            direction: Axis.horizontal,
-            spacing: 8.0, // gap between adjacent chips
-            runSpacing: 4.0, // gap between lines,
-            children: contents,
-          ))
+      Wrap(
+        direction: Axis.horizontal,
+        spacing: 8.0, // gap between adjacent chips
+        runSpacing: 4.0, // gap between lines,
+        children: contents,
+      )
+    ],
+  );
+}
+
+Widget bigTitleWithContent(BuildContext context,
+    {required String title, required Widget child}) {
+  return Column(
+    children: [
+      Text(
+        title,
+        style: Theme.of(context).textTheme.headlineMedium,
+      ),
+      child
     ],
   );
 }
@@ -72,38 +114,31 @@ Widget chipCountry(BuildContext context, String text, String countryCode) {
     children: [
       Padding(
           padding: const EdgeInsets.fromLTRB(0, 0, 8, 0),
-          child: CountryFlag.fromCountryCode(
-            countryCode,
+          child: CountryFlag(
+            country: Country.fromCode(countryCode),
             height: 24,
-            width: 32,
           )),
       Text(text)
     ],
   ));
 }
 
-Widget imageWithPlaceholder(String url, {double height = 360}) {
-  return Stack(
-    children: <Widget>[
-      SizedBox(
-          height: height,
-          child: const Center(child: CircularProgressIndicator())),
-      Center(
-        child: FadeInImage.memoryNetwork(
-          placeholder: kTransparentImage,
-          imageErrorBuilder: (context, obj, error) =>
-          emptyImagePlaceholder(
-            width: height,
-            height: height,
-            placeholderIcon: Icons.cloud_off,
-          ),
-          image: url,
-          height: height,
-          fit: BoxFit.cover,
-        ),
+Widget imageWithPlaceholder(String url, {double? height}) {
+  final double minEmptyImageHeight = 120;
+  return Stack(alignment: Alignment.center, children: <Widget>[
+    CircularProgressIndicator(),
+    FadeInImage.memoryNetwork(
+      placeholder: kTransparentImage,
+      imageErrorBuilder: (context, obj, error) => emptyImagePlaceholder(
+        width: height ?? minEmptyImageHeight,
+        height: height ?? minEmptyImageHeight,
+        placeholderIcon: Icons.cloud_off,
       ),
-    ],
-  );
+      image: url,
+      height: height,
+      fit: BoxFit.cover,
+    ),
+  ]);
 }
 
 Widget emptyImagePlaceholder(

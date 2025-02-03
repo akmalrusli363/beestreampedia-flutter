@@ -1,3 +1,6 @@
+import '../../utils/tv_show_utils.dart';
+import '../tmdb_config_enums.dart';
+
 class TvSeasonsDetail {
     String id;
     DateTime? airDate;
@@ -34,9 +37,7 @@ class TvSeasonsDetail {
     );
 
     String getPosterUrl() {
-        const baseImageUrl = 'https://image.tmdb.org/t/p/';
-        const configSize = 'w780';
-        return "$baseImageUrl$configSize/$posterPath";
+        return getTmdbImageUrl(imageUrl: posterPath, width: ImageWidthOptions.w500);
     }
 }
 
@@ -85,9 +86,7 @@ class Episode {
     );
 
     String getThumbnailUrl() {
-        const baseImageUrl = 'https://image.tmdb.org/t/p/';
-        const configSize = 'w780';
-        return "$baseImageUrl$configSize/$stillPath";
+        return getTmdbImageUrl(imageUrl: stillPath, width: ImageWidthOptions.w500);
     }
 }
 

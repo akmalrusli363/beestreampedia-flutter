@@ -39,7 +39,7 @@ dependencies:
   flutter_staggered_grid_view: ^0.7.0
   transparent_image: ^2.0.1
   marquee: ^2.3.0
-  country_flags: ^3.2.0
+  dash_flags: ^0.1.1
 
 dev_dependencies:
   flutter_test:

@@ -1,5 +1,8 @@
 import 'dart:core';
 
+import 'package:beestream_pedia/model/tmdb_config_enums.dart';
+import 'package:beestream_pedia/utils/tv_show_utils.dart';
+
 class TVShowData {
   final int id;
   final List<int> genreIds;
@@ -34,15 +37,11 @@ class TVShowData {
   });
 
   String getPosterUrl() {
-    const baseImageUrl = 'https://image.tmdb.org/t/p/';
-    const configSize = 'w780';
-    return "$baseImageUrl$configSize/$posterPath";
+    return getTmdbImageUrl(imageUrl: posterPath, width: ImageWidthOptions.w500);
   }
 
   String getBackdropUrl() {
-    const baseImageUrl = 'https://image.tmdb.org/t/p/';
-    const configSize = 'w780';
-    return "$baseImageUrl$configSize/$backdropPath";
+    return getTmdbImageUrl(imageUrl: backdropPath);
   }
 
   TVShowData.fromJson(Map<String, dynamic> json)

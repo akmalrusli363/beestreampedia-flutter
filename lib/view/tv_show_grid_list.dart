@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:math';
 
 import 'package:beestream_pedia/utils/tv_show_utils.dart';
 import 'package:beestream_pedia/view/common_widgets.dart';
@@ -8,11 +7,10 @@ import 'package:beestream_pedia/view/tv_show_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
 
-import 'constants/constants.dart';
-import 'model/response/tv_show_list_response.dart';
-import 'model/tv_show_data.dart';
+import '../constants/constants.dart';
+import '../model/response/tv_show_list_response.dart';
+import '../model/tv_show_data.dart';
 
 class TvShowGridList extends StatefulWidget {
   const TvShowGridList({Key? key, required this.fetchUrl}) : super(key: key);
@@ -115,25 +113,35 @@ class _TvShowGridListState extends State<TvShowGridList> {
     return MasonryGridView.count(
         controller: _scrollController,
         crossAxisCount: getCrossAxisGridCountFromScreenSize(context,
-            fixedWidth: 300, minCrossAxisCount: 2),
+            fixedWidth: 270, minCrossAxisCount: 2),
         mainAxisSpacing: 8.0,
         crossAxisSpacing: 8.0,
         padding: const EdgeInsets.all(8.0),
         itemCount: items.length,
         itemBuilder: (context, index) {
           final item = items[index];
-          return tvShowInformationCard(item);
+          return TvShowCard(context: context, item: item);
         });
   }
+}
 
-  Widget tvShowInformationCard(TVShowData item) {
+class TvShowCard extends StatelessWidget {
+  const TvShowCard({
+    super.key,
+    required this.context,
+    required this.item,
+  });
+
+  final BuildContext context;
+  final TVShowData item;
+
+  @override
+  Widget build(BuildContext context) {
     final rating = "${formatDecimal(item.voteAverage)}/10";
     final contents = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        imageWithPlaceholder(
-          item.getPosterUrl(),
-        ),
+        imageWithPlaceholder(item.getPosterUrl()),
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(children: [
@@ -144,6 +152,7 @@ class _TvShowGridListState extends State<TvShowGridList> {
             ),
             Text(
               item.originalName,
+              textAlign: TextAlign.center,
               style: Theme.of(context)
                   .textTheme
                   .titleMedium
@@ -156,6 +165,8 @@ class _TvShowGridListState extends State<TvShowGridList> {
             Text(
               item.overview,
               style: Theme.of(context).textTheme.bodySmall,
+              maxLines: 4,
+              overflow: TextOverflow.ellipsis,
             ),
           ]),
         )
@@ -172,24 +183,25 @@ class _TvShowGridListState extends State<TvShowGridList> {
             onTap: () {
               Navigator.push(
                 context,
-                _createRoute(item.id),
+                _gotoShowDetailScreen(item.id),
               );
-            }));
+            }
+    ));
   }
 
-  Route _createRoute(int tvShowId) {
+  Route _gotoShowDetailScreen(int tvShowId) {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) =>
           TvShowDetailScreen(
-        tvShowId: tvShowId,
-      ),
+            tvShowId: tvShowId,
+          ),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         const begin = Offset(0.0, 1.0);
         const end = Offset.zero;
         const curve = Curves.ease;
 
         var tween =
-            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+        Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
 
         return SlideTransition(
           position: animation.drive(tween),

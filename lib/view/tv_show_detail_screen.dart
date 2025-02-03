@@ -8,8 +8,6 @@ import 'package:beestream_pedia/view/common_widgets.dart';
 import 'package:beestream_pedia/view/tv_show_seasons_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:intl/intl.dart';
-import 'package:transparent_image/transparent_image.dart';
 
 import '../constants/constants.dart';
 
@@ -72,9 +70,7 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              imageWithPlaceholder(
-                item.getPosterUrl(),
-              ),
+              imageWithPlaceholder(item.getPosterUrl(), height: 360),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Column(children: [
@@ -89,34 +85,39 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
                         .textTheme
                         .titleMedium
                         ?.apply(fontStyle: FontStyle.italic),
+                    textAlign: TextAlign.center,
                   ),
                   starRating(context, (item.voteAverage ?? 0) / 2, 5),
                   Text(
                     '$rating (${item.voteCount} votes)',
+                    textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
-                  inlineField(context,
-                      textField: Text(
-                        'Created by:',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      contents: item.createdBy
-                          .map((e) => Chip(
-                              label: Text("${e.name} (${e.originalName})")))
-                          .toList()),
                   Text(
                     'Premiered at: ${item.firstAirDate} - Latest air date: ${item.lastAirDate}',
+                    textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
-                  inlineField(
-                    context,
-                    textField: Text("Production companies: "),
-                    contents: item.productionCompanies
-                        .map((e) => chipCountry(
-                            context, e.name ?? "", e.originCountry ?? ""))
-                        .toList(),
-                    mainAxisAlignment: MainAxisAlignment.center,
-                  ),
+                  if (item.createdBy.isNotEmpty)
+                    inlineField(context,
+                        textField: Text(
+                          'Created by: ',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        contents: item.createdBy
+                            .map((e) => Chip(
+                                label: Text("${e.name} (${e.originalName})")))
+                            .toList()),
+                  if (item.productionCompanies.isNotEmpty)
+                    inlineField(
+                      context,
+                      textField: Text("Production companies: "),
+                      contents: item.productionCompanies
+                          .map((e) => chipCountry(
+                              context, e.name ?? "", e.originCountry ?? ""))
+                          .toList(),
+                      mainAxisAlignment: MainAxisAlignment.center,
+                    ),
                   Row(
                     mainAxisSize: MainAxisSize.max,
                     children: [
@@ -125,23 +126,32 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
                               context, item.numberOfSeasons ?? 0, "Seasons")),
                       Expanded(
                           child: bigNumberWithCaptions(
-                              context, item.numberOfEpisodes ?? 0, "Episodes"))
+                              context, item.numberOfEpisodes ?? 0, "Episodes")),
+                      Expanded(
+                          child: bigCountryFlagWithCaptions(
+                              context, item.originCountry[0], "Country")),
+                      if (item.originalLanguage != null &&
+                          item.originalLanguage!.isNotEmpty)
+                        Expanded(
+                            child: bigLanguageFlagWithCaptions(context,
+                                item.originalLanguage!, "Original Language")),
                     ],
                   ),
-                  Text(
-                    "Overview",
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                  Text(
-                    item.overview,
-                    style: Theme.of(context).textTheme.bodyMedium,
+                  bigTitleWithContent(
+                    context,
+                    title: "Overview",
+                    child: Text(
+                      item.overview,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
                   ),
                   Text(
                     "Seasons List",
                     style: Theme.of(context).textTheme.headlineMedium,
                   ),
-                  tvShowSeasonCardList(
-                      TVShowDataWrapper.fromTvShowDetail(item), item.seasons)
+                  TvShowSeasonCardList(
+                      wrapper: TVShowDataWrapper.fromTvShowDetail(item),
+                      seasons: item.seasons)
                 ]),
               )
             ],
@@ -150,83 +160,42 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
       ),
     );
   }
+}
 
-  Widget tvShowSeasonCardList(
-      TVShowDataWrapper wrapper, List<TvShowSeason> seasons) {
-    return (seasons.isNotEmpty)
-        ? ConstrainedBox(
-            constraints: const BoxConstraints(maxHeight: 450),
-            child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                itemCount: seasons.length,
-                shrinkWrap: true,
-                itemBuilder: (context, index) {
-                  return tvShowSeasonCard(seasons[index], () {
-                    Navigator.push(
-                      context,
-                      _gotoSeasonDetailScreen(
-                          wrapper, (seasons[index].seasonNumber ?? 0)),
-                    );
-                  });
-                }),
-          )
-        : Container();
-  }
+class TvShowSeasonCardList extends StatelessWidget {
+  const TvShowSeasonCardList({
+    super.key,
+    required this.wrapper,
+    required this.seasons,
+  });
 
-  Widget tvShowSeasonCard(
-      TvShowSeason season, void Function() onSeasonCardClick) {
-    final seasonDetail = ConstrainedBox(
-        constraints:
-            BoxConstraints(maxWidth: 300, maxHeight: 450, minHeight: 200),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (season.posterPath != null)
-              (Expanded(
-                child: imageWithPlaceholder(season.getPosterUrl(), height: 300),
-              )),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(children: [
-                Text(
-                  season.name,
-                  style: Theme.of(context).textTheme.headlineSmall,
-                  textAlign: TextAlign.center,
-                ),
-                if (season.airDate != null && season.airDate!.isNotEmpty)
-                  (Text(
-                    "Air date: ${season.airDate}",
-                    style: Theme.of(context).textTheme.titleMedium,
-                  )),
-                Text(
-                  "Season ${season.seasonNumber} - ${season.episodeCount} episodes",
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.apply(fontStyle: FontStyle.italic),
-                ),
-                Text(
-                  season.overview,
-                  style: Theme.of(context).textTheme.bodySmall,
-                  maxLines: 5,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ]),
-            )
-          ],
-        ));
-    return Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(4.0),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onSeasonCardClick,
-          child: seasonDetail,
-        ));
+  final TVShowDataWrapper wrapper;
+  final List<TvShowSeason> seasons;
+
+  @override
+  Widget build(BuildContext context) {
+    final seasonsListCard = ConstrainedBox(
+      constraints: const BoxConstraints(maxHeight: 450),
+      child:
+      ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          itemCount: seasons.length,
+          shrinkWrap: true,
+          itemBuilder: (context, index) {
+            return TvShowSeasonCard(
+                context: context,
+                season: seasons[index],
+                onSeasonCardClick: () {
+                  Navigator.push(
+                    context,
+                    _gotoSeasonDetailScreen(
+                        wrapper, (seasons[index].seasonNumber ?? 0)),
+                  );
+                });
+          }),
+    );
+    return (seasons.isNotEmpty) ? seasonsListCard : Container();
   }
 
   Route _gotoSeasonDetailScreen(TVShowDataWrapper wrapper, int seasonNo) {
@@ -250,5 +219,76 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
         );
       },
     );
+  }
+}
+
+class TvShowSeasonCard extends StatelessWidget {
+  const TvShowSeasonCard({
+    super.key,
+    required this.context,
+    required this.season,
+    required this.onSeasonCardClick,
+  });
+
+  final BuildContext context;
+  final TvShowSeason season;
+  final void Function() onSeasonCardClick;
+
+  @override
+  Widget build(BuildContext context) {
+    final seasonDetail =
+    ConstrainedBox(
+        constraints:
+            BoxConstraints(maxWidth: 240),
+        child:
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (season.posterPath != null)
+              (Expanded(
+                child: imageWithPlaceholder(season.getPosterUrl(), height: 300),
+              )),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(children: [
+                Text(
+                  season.name,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                  textAlign: TextAlign.center,
+                ),
+                if (season.airDate != null && season.airDate!.isNotEmpty)
+                  (Text(
+                    "Air date: ${season.airDate}",
+                    style: Theme.of(context).textTheme.titleMedium,
+                    textAlign: TextAlign.center,
+                  )),
+                Text(
+                  "Season ${season.seasonNumber} - ${season.episodeCount} episodes",
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.apply(fontStyle: FontStyle.italic),
+                  textAlign: TextAlign.center,
+                ),
+                Text(
+                  season.overview,
+                  style: Theme.of(context).textTheme.bodySmall,
+                  maxLines: 5,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ]),
+            )
+          ],
+        ));
+    return Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(4.0),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onSeasonCardClick,
+          child: seasonDetail,
+        ));
   }
 }

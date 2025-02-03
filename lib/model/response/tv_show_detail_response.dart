@@ -1,3 +1,6 @@
+import '../../utils/tv_show_utils.dart';
+import '../tmdb_config_enums.dart';
+
 class TvShowDetail {
   bool? adult;
   String? backdropPath;
@@ -65,15 +68,11 @@ class TvShowDetail {
         this.voteCount});
 
   String getPosterUrl() {
-    const baseImageUrl = 'https://image.tmdb.org/t/p/';
-    const configSize = 'w780';
-    return "$baseImageUrl$configSize/$posterPath";
+    return getTmdbImageUrl(imageUrl: posterPath, width: ImageWidthOptions.w500);
   }
 
   String getBackdropUrl() {
-    const baseImageUrl = 'https://image.tmdb.org/t/p/';
-    const configSize = 'w780';
-    return "$baseImageUrl$configSize/$backdropPath";
+    return getTmdbImageUrl(imageUrl: backdropPath);
   }
 
   TvShowDetail.fromJson(Map<String, dynamic> json) {
@@ -358,9 +357,7 @@ class TvShowSeason {
   }
 
   String getPosterUrl() {
-    const baseImageUrl = 'https://image.tmdb.org/t/p/';
-    const configSize = 'w780';
-    return "$baseImageUrl$configSize/${posterPath ?? ""}";
+    return getTmdbImageUrl(imageUrl: posterPath, width: ImageWidthOptions.w500);
   }
 }
 

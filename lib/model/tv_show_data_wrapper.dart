@@ -1,5 +1,8 @@
 import 'package:beestream_pedia/model/response/tv_show_detail_response.dart';
+import 'package:beestream_pedia/model/tmdb_config_enums.dart';
 import 'package:beestream_pedia/model/tv_show_data.dart';
+
+import '../utils/tv_show_utils.dart';
 
 class TVShowDataWrapper {
   final int id;
@@ -15,9 +18,7 @@ class TVShowDataWrapper {
   });
 
   String getPosterUrl() {
-    const baseImageUrl = 'https://image.tmdb.org/t/p/';
-    const configSize = 'w780';
-    return "$baseImageUrl$configSize/$posterPath";
+    return getTmdbImageUrl(imageUrl: posterPath, width: ImageWidthOptions.w500);
   }
 
   TVShowDataWrapper.fromTvShowData(TVShowData data)
