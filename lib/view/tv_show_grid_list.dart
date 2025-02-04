@@ -138,37 +138,38 @@ class TvShowCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final rating = "${formatDecimal(item.voteAverage)}/10";
+    final tvShowInfoSection = Column(children: [
+      Text(
+        item.name,
+        style: Theme.of(context).textTheme.headlineSmall,
+        textAlign: TextAlign.center,
+      ),
+      Text(
+        item.originalName,
+        textAlign: TextAlign.center,
+        style: Theme.of(context)
+            .textTheme
+            .titleMedium
+            ?.apply(fontStyle: FontStyle.italic),
+      ),
+      Text(
+        '$rating (${item.voteCount} votes)',
+        style: Theme.of(context).textTheme.bodyMedium,
+      ),
+      Text(
+        item.overview,
+        style: Theme.of(context).textTheme.bodySmall,
+        maxLines: 4,
+        overflow: TextOverflow.ellipsis,
+      ),
+    ]);
     final contents = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         imageWithPlaceholder(item.getPosterUrl()),
         Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Column(children: [
-            Text(
-              item.name,
-              style: Theme.of(context).textTheme.headlineSmall,
-              textAlign: TextAlign.center,
-            ),
-            Text(
-              item.originalName,
-              textAlign: TextAlign.center,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleMedium
-                  ?.apply(fontStyle: FontStyle.italic),
-            ),
-            Text(
-              '$rating (${item.voteCount} votes)',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-            Text(
-              item.overview,
-              style: Theme.of(context).textTheme.bodySmall,
-              maxLines: 4,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ]),
+          child: tvShowInfoSection,
         )
       ],
     );
