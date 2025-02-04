@@ -111,14 +111,13 @@ Widget chipCountry(BuildContext context, String text, String countryCode) {
   return Chip(
       label: Row(
     mainAxisSize: MainAxisSize.min,
+    spacing: 8,
     children: [
-      Padding(
-          padding: const EdgeInsets.fromLTRB(0, 0, 8, 0),
-          child: CountryFlag(
-            country: Country.fromCode(countryCode),
-            height: 24,
-          )),
-      Text(text)
+      CountryFlag(
+        country: Country.fromCode(countryCode),
+        height: 24,
+      ),
+      Flexible(child: Tooltip(message: text, child: Text(text, overflow: TextOverflow.ellipsis),))
     ],
   ));
 }

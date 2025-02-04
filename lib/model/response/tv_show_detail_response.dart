@@ -5,13 +5,13 @@ class TvShowDetail {
   bool? adult;
   String? backdropPath;
   late List<CreatedBy> createdBy = [];
-  String? firstAirDate;
+  DateTime? firstAirDate;
   late List<Genres> genres = [];
   String? homepage;
   late final int id;
   bool? inProduction;
   late List<String> languages = [];
-  String? lastAirDate;
+  DateTime? lastAirDate;
   LastEpisodeToAir? lastEpisodeToAir;
   late final String name;
   NextEpisodeToAir? nextEpisodeToAir;
@@ -84,7 +84,7 @@ class TvShowDetail {
         createdBy.add(CreatedBy.fromJson(v));
       });
     }
-    firstAirDate = json['first_air_date'];
+    firstAirDate = (json["first_air_date"] != null) ? DateTime.parse(json["first_air_date"]) : null;
     genres = <Genres>[];
     if (json['genres'] != null) {
       json['genres'].forEach((v) {
@@ -95,7 +95,7 @@ class TvShowDetail {
     id = json['id'];
     inProduction = json['in_production'];
     languages = json['languages'].cast<String>();
-    lastAirDate = json['last_air_date'];
+    lastAirDate = (json["last_air_date"] != null) ? DateTime.parse(json["last_air_date"]) : null;
     lastEpisodeToAir = json['last_episode_to_air'] != null
         ? LastEpisodeToAir.fromJson(json['last_episode_to_air'])
         : null;

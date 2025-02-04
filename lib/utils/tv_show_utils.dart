@@ -16,8 +16,12 @@ String formatDecimal(num? decimal) {
   return numberFormat.format(decimal ?? 0);
 }
 
-String formatDate(DateTime date, {String dateFormat = "d MMMM yyyy"}) {
-  return DateFormat(dateFormat, getLocaleString()).format(date);
+String formatDate(DateTime? date, {String dateFormat = "d MMMM yyyy", String defaultEmptyDateText = "n/a"}) {
+  if (date != null) {
+    return (DateFormat(dateFormat, getLocaleString()).format(date));
+  } else {
+    return defaultEmptyDateText;
+  }
 }
 
 String getTmdbImageUrl({required String? imageUrl, ImageWidthOptions width = ImageWidthOptions.w300}) {

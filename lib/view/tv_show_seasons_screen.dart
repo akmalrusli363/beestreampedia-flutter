@@ -59,8 +59,8 @@ class _TvShowSeasonsDetailScreenState extends State<TvShowSeasonsDetailScreen> {
         });
   }
 
-  Widget _detailScreen(BuildContext context, TVShowDataWrapper show,
-      TvSeasonsDetail item) {
+  Widget _detailScreen(
+      BuildContext context, TVShowDataWrapper show, TvSeasonsDetail item) {
     final seasonPosterImage = Builder(builder: (context) {
       if (item.posterPath != null && item.posterPath!.isNotEmpty) {
         return imageWithPlaceholder(item.getPosterUrl(), height: 360);
@@ -69,51 +69,51 @@ class _TvShowSeasonsDetailScreenState extends State<TvShowSeasonsDetailScreen> {
       }
       return Container();
     });
-    final seasonMetadataInformation = Column(
-      children: [
-        Text(
-          "${show.name} - Season ${item.seasonNumber}",
-          style: Theme.of(context).textTheme.titleMedium,
-          textAlign: TextAlign.center,
-        ),
-        Text(
-          item.name,
-          style: Theme.of(context).textTheme.headlineMedium,
-          textAlign: TextAlign.center,
-        ),
-        if (item.voteAverage != null && item.voteAverage! > 0)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              starRating(context, (item.voteAverage ?? 0) / 2, 5),
-              Text(
-                "${formatDecimal(item.voteAverage)}/10",
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ],
-          ),
-        if (item.airDate != null)
+    final seasonMetadataInformation = Container(
+      padding: EdgeInsets.all(16),
+      child: Column(
+        children: [
           Text(
-            'Premiered at: ${formatDate(item.airDate!)}',
-            style: Theme.of(context).textTheme.bodyMedium,
+            "${show.name} - Season ${item.seasonNumber}",
+            style: Theme.of(context).textTheme.titleMedium,
+            textAlign: TextAlign.center,
           ),
-      ],
+          Text(
+            item.name,
+            style: Theme.of(context).textTheme.headlineMedium,
+            textAlign: TextAlign.center,
+          ),
+          if (item.voteAverage != null && item.voteAverage! > 0)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                starRating(context, (item.voteAverage ?? 0) / 2, 5),
+                Text(
+                  "${formatDecimal(item.voteAverage)}/10",
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ],
+            ),
+          if (item.airDate != null)
+            Text(
+              'Premiered at: ${formatDate(item.airDate!)}',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+        ],
+      ),
     );
-    final seasonOverviewSection = Builder(
-      builder: (context) {
-        if (item.overview.isNotEmpty) {
-          return Container(
+    final seasonOverviewSection = Builder(builder: (context) {
+      if (item.overview.isNotEmpty) {
+        return Container(
             padding: EdgeInsets.all(16),
             child: bigTitleWithContent(context,
-              title: "Overview",
-              child: Text(item.overview, style: Theme.of(context).textTheme.bodyMedium)
-            )
-          );
-        } else {
-          return Container();
-        }
+                title: "Overview",
+                child: Text(item.overview,
+                    style: Theme.of(context).textTheme.bodyMedium)));
+      } else {
+        return Container();
       }
-    );
+    });
     final episodeList = Column(
       children: [
         Text(
@@ -160,15 +160,15 @@ class TvEpisodeCardList extends StatelessWidget {
   Widget build(BuildContext context) {
     return (episodes.isNotEmpty)
         ? AlignedGridView.count(
-        physics: NeverScrollableScrollPhysics(),
-        crossAxisCount: getCrossAxisGridCountFromScreenSize(context,
-            fixedWidth: 360, minCrossAxisCount: 1),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        itemCount: episodes.length,
-        shrinkWrap: true,
-        itemBuilder: (context, index) {
-          return TvEpisodeCard(context: context, episode: episodes[index]);
-        })
+            physics: NeverScrollableScrollPhysics(),
+            crossAxisCount: getCrossAxisGridCountFromScreenSize(context,
+                fixedWidth: 360, minCrossAxisCount: 1),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            itemCount: episodes.length,
+            shrinkWrap: true,
+            itemBuilder: (context, index) {
+              return TvEpisodeCard(context: context, episode: episodes[index]);
+            })
         : Container();
   }
 }
@@ -217,37 +217,51 @@ class TvEpisodeCard extends StatelessWidget {
           style: Theme.of(context).textTheme.headlineSmall,
           textAlign: TextAlign.center,
         ),
-        Text(
-          episode.overview,
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
+        if (episode.overview.isNotEmpty)
+          Text(
+            episode.overview,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
       ]),
     );
     final episodeFooterSection = Container(
+      // alignment: Alignment.center,
         padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        child: Row(
+        child: Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             if (episode.airDate != null)
               Text.rich(
                 TextSpan(
-                  text: "Air date: ",
                   children: [
                     TextSpan(
+                      text: "Air date: ",
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    TextSpan(
                       text: formatDate(episode.airDate!),
-                      style: TextStyle(
-                          fontWeight: FontWeight.normal,
-                          fontStyle: FontStyle.italic),
                     )
                   ],
-                  style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontStyle: FontStyle.italic),
                 ),
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.apply(fontStyle: FontStyle.italic),
                 textAlign: TextAlign.left,
+              ),
+            if (episode.voteAverage != null && episode.voteAverage != 0)
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                spacing: 4,
+                children: [
+                  Icon(Icons.star, color: Colors.orange,),
+                  Text('${formatDecimal(episode.voteAverage)}/10', )
+                ]
               )
           ],
-        )
-    );
+        ));
     final episodeDetail = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,

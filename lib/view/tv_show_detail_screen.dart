@@ -114,11 +114,16 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
                           style: Theme.of(context).textTheme.bodySmall)))
                   .toList(),
             ),
-            Text(
-              'Premiered at: ${item.firstAirDate} - Latest air date: ${item.lastAirDate}',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium,
-
+          Text.rich(
+            TextSpan(text: '', children: [
+              TextSpan(text: 'Premiered at: ', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(text: formatDate(item.firstAirDate)),
+              TextSpan(text: ' - '),
+              TextSpan(text: 'Latest air date: ', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(text: formatDate(item.lastAirDate)),
+            ]),
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium,
           ),
           if (item.createdBy.isNotEmpty)
             inlineField(context,
@@ -148,11 +153,17 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
         child: bigTitleWithContent(
           context,
           title: "Overview",
-          child: Text(
+          child: (item.overview.isNotEmpty) ? Text(
             item.overview,
             style: Theme.of(context).textTheme.bodyMedium,
+          ) : Text(
+            "No description provided for this TV series",
+            style: Theme.of(context).textTheme.bodyMedium?.apply(
+              fontStyle: FontStyle.italic
+            ),
           ),
-        ));
+        )
+    );
     final tvSeriesSeasonList = Container(
       padding: EdgeInsets.symmetric(vertical: 16),
       child: Column(children: [
