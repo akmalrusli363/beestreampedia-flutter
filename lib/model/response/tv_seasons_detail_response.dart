@@ -71,7 +71,7 @@ class Episode {
     });
 
     factory Episode.fromJson(Map<String, dynamic> json) => Episode(
-        airDate: (json["air_date"] != null) ? DateTime.parse(json["air_date"]) : null,
+        airDate: parseDateOrNull(json["air_date"]),
         episodeNumber: json["episode_number"],
         episodeType: json["episode_type"],
         id: json["id"],

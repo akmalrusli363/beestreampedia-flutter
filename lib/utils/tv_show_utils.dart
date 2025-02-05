@@ -28,3 +28,14 @@ String getTmdbImageUrl({required String? imageUrl, ImageWidthOptions width = Ima
   const baseImageUrl = 'https://image.tmdb.org/t/p/';
   return "$baseImageUrl${width.name}/$imageUrl";
 }
+
+DateTime? parseDateOrNull(String? dateString) {
+  if (dateString != null) {
+    try {
+      return DateTime.parse(dateString);
+    } catch (e) {
+      return null;
+    }
+  }
+  return null;
+}

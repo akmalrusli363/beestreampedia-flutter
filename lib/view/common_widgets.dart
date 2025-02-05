@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:beestream_pedia/model/tmdb_locale_storage.dart';
 import 'package:dash_flags/dash_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:transparent_image/transparent_image.dart';
@@ -22,11 +23,17 @@ Widget bigNumberWithCaptions(BuildContext context, num number, String caption) {
 
 Widget bigCountryFlagWithCaptions(
     BuildContext context, String countryCode, String caption) {
+  final countryFlagCode =
+      ({'as', 'do', 'in', 'is'}.contains(countryCode.toLowerCase()))
+          ? 'c_$countryCode'
+          : countryCode;
   return Column(children: [
-    CountryFlag(
-      country: Country.fromCode(countryCode),
-      height: 32,
-    ),
+    Tooltip(
+        message: LocaleStorage().getCountryName(countryCode) ?? '',
+        child: CountryFlag(
+          country: Country.fromCode(countryFlagCode),
+          height: 32,
+        )),
     Text(
       caption,
       style: Theme.of(context).textTheme.titleSmall,
@@ -37,11 +44,17 @@ Widget bigCountryFlagWithCaptions(
 
 Widget bigLanguageFlagWithCaptions(
     BuildContext context, String languageCode, String caption) {
+  final languageFlagCode =
+      ({'as', 'do', 'in', 'is'}.contains(languageCode.toLowerCase()))
+          ? 'l_$languageCode'
+          : languageCode;
   return Column(children: [
-    LanguageFlag(
-      language: Language.fromCode(languageCode),
-      height: 32,
-    ),
+    Tooltip(
+        message: LocaleStorage().getLanguageName(languageCode) ?? '',
+        child: LanguageFlag(
+          language: Language.fromCode(languageFlagCode),
+          height: 32,
+        )),
     Text(
       caption,
       style: Theme.of(context).textTheme.titleSmall,
@@ -108,16 +121,24 @@ Widget bigTitleWithContent(BuildContext context,
 }
 
 Widget chipCountry(BuildContext context, String text, String countryCode) {
+  final countryFlagCode =
+      ({'as', 'do', 'in', 'is'}.contains(countryCode.toLowerCase()))
+          ? 'c_$countryCode'
+          : countryCode;
   return Chip(
       label: Row(
     mainAxisSize: MainAxisSize.min,
     spacing: 8,
     children: [
       CountryFlag(
-        country: Country.fromCode(countryCode),
+        country: Country.fromCode(countryFlagCode),
         height: 24,
       ),
-      Flexible(child: Tooltip(message: text, child: Text(text, overflow: TextOverflow.ellipsis),))
+      Flexible(
+          child: Tooltip(
+        message: text,
+        child: Text(text, overflow: TextOverflow.ellipsis),
+      ))
     ],
   ));
 }
@@ -125,7 +146,7 @@ Widget chipCountry(BuildContext context, String text, String countryCode) {
 Widget imageWithPlaceholder(String url, {double? height}) {
   final double minEmptyImageHeight = 120;
   return Stack(alignment: Alignment.center, children: <Widget>[
-    Center(child:CircularProgressIndicator()),
+    Center(child: CircularProgressIndicator()),
     FadeInImage.memoryNetwork(
       placeholder: kTransparentImage,
       imageErrorBuilder: (context, obj, error) => emptyImagePlaceholder(

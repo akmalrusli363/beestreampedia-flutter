@@ -84,7 +84,7 @@ class TvShowDetail {
         createdBy.add(CreatedBy.fromJson(v));
       });
     }
-    firstAirDate = (json["first_air_date"] != null) ? DateTime.parse(json["first_air_date"]) : null;
+    firstAirDate = parseDateOrNull(json["first_air_date"]);
     genres = <Genres>[];
     if (json['genres'] != null) {
       json['genres'].forEach((v) {
@@ -95,7 +95,7 @@ class TvShowDetail {
     id = json['id'];
     inProduction = json['in_production'];
     languages = json['languages'].cast<String>();
-    lastAirDate = (json["last_air_date"] != null) ? DateTime.parse(json["last_air_date"]) : null;
+    lastAirDate = parseDateOrNull(json["last_air_date"]);
     lastEpisodeToAir = json['last_episode_to_air'] != null
         ? LastEpisodeToAir.fromJson(json['last_episode_to_air'])
         : null;

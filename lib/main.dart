@@ -4,10 +4,12 @@ import 'package:beestream_pedia/constants/beestream_theme.dart';
 import 'package:beestream_pedia/view/tv_show_catalogue_screen.dart';
 import 'package:flutter/material.dart';
 
+import 'model/tmdb_locale_storage.dart';
 import 'network/http_certificate_override.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await LocaleStorage().fetchAndStoreLocales();
   HttpOverrides.global = MyHttpOverrides();
 
   runApp(const MyApp());
