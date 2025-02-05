@@ -75,6 +75,10 @@ class TvShowDetail {
     return getTmdbImageUrl(imageUrl: backdropPath);
   }
 
+  String getFullName() {
+    return (name == originalName) ? name : "$name - ($originalName)";
+  }
+
   TvShowDetail.fromJson(Map<String, dynamic> json) {
     adult = json['adult'];
     backdropPath = json['backdrop_path'];

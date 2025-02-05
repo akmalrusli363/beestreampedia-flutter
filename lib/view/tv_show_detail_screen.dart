@@ -50,12 +50,21 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
     return FutureBuilder<TvShowDetail>(
         future: fItem,
         builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            return _detailScreen(context, snapshot.requireData);
-          } else if (snapshot.hasError) {
-            return errorWithStackTrace(context, snapshot);
-          }
-          return const Center(child: CircularProgressIndicator());
+          final String title = (snapshot.hasData)
+              ? snapshot.requireData.getFullName()
+              : "TV Show Information";
+          return Scaffold(
+              appBar: AppBar(
+                title: Text(title),
+              ),
+              body: Builder(builder: (context) {
+                if (snapshot.hasData) {
+                  return _detailScreen(context, snapshot.requireData);
+                } else if (snapshot.hasError) {
+                  return errorWithStackTrace(context, snapshot);
+                }
+                return const Center(child: CircularProgressIndicator());
+              }));
         });
   }
 
@@ -156,6 +165,7 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
           child: (item.overview.isNotEmpty) ? Text(
             item.overview,
             style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.justify,
           ) : Text(
             "No description provided for this TV series",
             style: Theme.of(context).textTheme.bodyMedium?.apply(
@@ -176,11 +186,8 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
             seasons: item.seasons)
       ]),
     );
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("${item.name} - (${item.originalName})"),
-      ),
-      body: SingleChildScrollView(
+    return
+      SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -195,7 +202,6 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
               tvSeriesSeasonList,
             ],
           ),
-        ),
       ),
     );
   }
@@ -298,6 +304,7 @@ class TvShowSeasonCard extends StatelessWidget {
         style: Theme.of(context).textTheme.bodySmall,
         maxLines: 5,
         overflow: TextOverflow.ellipsis,
+        textAlign: TextAlign.justify,
       ),
     ]);
     final seasonDetailCard = ConstrainedBox(

@@ -13,7 +13,7 @@ import '../model/response/tv_show_list_response.dart';
 import '../model/tv_show_data.dart';
 
 class TvShowGridList extends StatefulWidget {
-  const TvShowGridList({Key? key, required this.fetchUrl}) : super(key: key);
+  const TvShowGridList({super.key, required this.fetchUrl});
 
   final String fetchUrl;
 
@@ -161,6 +161,7 @@ class TvShowCard extends StatelessWidget {
         style: Theme.of(context).textTheme.bodySmall,
         maxLines: 4,
         overflow: TextOverflow.ellipsis,
+        textAlign: TextAlign.justify,
       ),
     ]);
     final contents = Column(

@@ -24,7 +24,8 @@ class TvShowSeasonsDetailScreen extends StatefulWidget {
 }
 
 class _TvShowSeasonsDetailScreenState extends State<TvShowSeasonsDetailScreen> {
-  Future<TvSeasonsDetail> _fetchTvSeasonsDetail(int tvShowId, int season) async {
+  Future<TvSeasonsDetail> _fetchTvSeasonsDetail(
+      int tvShowId, int season) async {
     final response = await http.get(
       Uri.parse("https://api.themoviedb.org/3/tv/$tvShowId/season/$season"),
       headers: {
@@ -106,10 +107,13 @@ class _TvShowSeasonsDetailScreenState extends State<TvShowSeasonsDetailScreen> {
       if (item.overview.isNotEmpty) {
         return Container(
             padding: EdgeInsets.all(16),
-            child: bigTitleWithContent(context,
-                title: "Overview",
-                child: Text(item.overview,
-                    style: Theme.of(context).textTheme.bodyMedium)));
+            child: bigTitleWithContent(
+              context,
+              title: "Overview",
+              child: Text(item.overview,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  textAlign: TextAlign.justify),
+            ));
       } else {
         return Container();
       }
@@ -218,14 +222,13 @@ class TvEpisodeCard extends StatelessWidget {
           textAlign: TextAlign.center,
         ),
         if (episode.overview.isNotEmpty)
-          Text(
-            episode.overview,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
+          Text(episode.overview,
+              style: Theme.of(context).textTheme.bodySmall,
+              textAlign: TextAlign.justify),
       ]),
     );
     final episodeFooterSection = Container(
-      // alignment: Alignment.center,
+        // alignment: Alignment.center,
         padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         child: Wrap(
           alignment: WrapAlignment.spaceBetween,
@@ -252,14 +255,13 @@ class TvEpisodeCard extends StatelessWidget {
               ),
             if (episode.voteAverage != null && episode.voteAverage != 0)
               Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                spacing: 4,
-                children: [
-                  Icon(Icons.star, color: Colors.orange,),
-                  Text('${formatDecimal(episode.voteAverage)}/10', )
-                ]
-              )
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  spacing: 4,
+                  children: [
+                    Icon(Icons.star, color: Colors.orange),
+                    Text('${formatDecimal(episode.voteAverage)}/10')
+                  ])
           ],
         ));
     final episodeDetail = Column(
