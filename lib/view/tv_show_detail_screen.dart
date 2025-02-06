@@ -5,7 +5,8 @@ import 'package:beestream_pedia/model/response/tv_show_detail_response.dart';
 import 'package:beestream_pedia/model/tv_show_data_wrapper.dart';
 import 'package:beestream_pedia/utils/tv_show_utils.dart';
 import 'package:beestream_pedia/view/common_widgets.dart';
-import 'package:beestream_pedia/view/tv_show_seasons_screen.dart';
+import 'package:beestream_pedia/view/tv_show_episode_list.dart';
+import 'package:beestream_pedia/view/tv_show_season_list.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
@@ -125,6 +126,19 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
             ),
           Text.rich(
             TextSpan(text: '', children: [
+              TextSpan(
+                  text: 'Series status: ',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(
+                  text: ((item.status ?? '').isNotEmpty)
+                      ? item.status
+                      : 'unknown'),
+            ]),
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          Text.rich(
+            TextSpan(text: '', children: [
               TextSpan(text: 'Premiered at: ', style: TextStyle(fontWeight: FontWeight.bold)),
               TextSpan(text: formatDate(item.firstAirDate)),
               TextSpan(text: ' - '),
@@ -174,6 +188,29 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
           ),
         )
     );
+    tvSeriesEpisodeOverview(title, episode) {
+      if (episode != null) {
+        return bigTitleWithContent(context,
+            title: title,
+            child: ConstrainedBox(
+                constraints: BoxConstraints.tightFor(width: 300),
+                child: TvEpisodeCard(
+                  context: context,
+                  episode: episode,
+                  showSeason: true,
+                )));
+      } else {
+        return Container();
+      }
+    }
+    final tvEpisodesSection = Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 32,
+      children: [
+        tvSeriesEpisodeOverview("Latest Episode", item.lastEpisodeToAir),
+        tvSeriesEpisodeOverview("Upcoming Episode", item.nextEpisodeToAir),
+      ],
+    );
     final tvSeriesSeasonList = Container(
       padding: EdgeInsets.symmetric(vertical: 16),
       child: Column(children: [
@@ -199,138 +236,11 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
                 child: tvMetadataMetricSection,
               ),
               tvOverviewSection,
+              tvEpisodesSection,
               tvSeriesSeasonList,
             ],
           ),
       ),
     );
-  }
-}
-
-class TvShowSeasonCardList extends StatelessWidget {
-  const TvShowSeasonCardList({
-    super.key,
-    required this.wrapper,
-    required this.seasons,
-  });
-
-  final TVShowDataWrapper wrapper;
-  final List<TvShowSeason> seasons;
-
-  @override
-  Widget build(BuildContext context) {
-    seasonCard(index) => TvShowSeasonCard(
-        context: context,
-        season: seasons[index],
-        onSeasonCardClick: () {
-          Navigator.push(
-            context,
-            _gotoSeasonDetailScreen(
-                wrapper, (seasons[index].seasonNumber ?? 0)),
-          );
-        });
-    final seasonsListCard = ConstrainedBox(
-      constraints: const BoxConstraints(maxHeight: 450),
-      child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          itemCount: seasons.length,
-          shrinkWrap: true,
-          itemBuilder: (context, index) {
-            return seasonCard(index);
-          }),
-    );
-    return (seasons.isNotEmpty) ? seasonsListCard : Container();
-  }
-
-  Route _gotoSeasonDetailScreen(TVShowDataWrapper wrapper, int seasonNo) {
-    return PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) =>
-          TvShowSeasonsDetailScreen(
-        tvShowData: wrapper,
-        seasonNo: seasonNo,
-      ),
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        const begin = Offset(0.0, 1.0);
-        const end = Offset.zero;
-        const curve = Curves.ease;
-
-        var tween =
-            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-
-        return SlideTransition(
-          position: animation.drive(tween),
-          child: child,
-        );
-      },
-    );
-  }
-}
-
-class TvShowSeasonCard extends StatelessWidget {
-  const TvShowSeasonCard({
-    super.key,
-    required this.context,
-    required this.season,
-    required this.onSeasonCardClick,
-  });
-
-  final BuildContext context;
-  final TvShowSeason season;
-  final void Function() onSeasonCardClick;
-
-  @override
-  Widget build(BuildContext context) {
-    final seasonInfoSection = Column(children: [
-      Text(
-        season.name,
-        style: Theme.of(context).textTheme.headlineSmall,
-        textAlign: TextAlign.center,
-      ),
-      if (season.airDate != null && season.airDate!.isNotEmpty)
-        (Text(
-          "Air date: ${season.airDate}",
-          style: Theme.of(context).textTheme.titleMedium,
-          textAlign: TextAlign.center,
-        )),
-      Text(
-        "Season ${season.seasonNumber} - ${season.episodeCount} episodes",
-        style: Theme.of(context).textTheme.titleMedium
-            ?.apply(fontStyle: FontStyle.italic),
-        textAlign: TextAlign.center,
-      ),
-      Text(
-        season.overview,
-        style: Theme.of(context).textTheme.bodySmall,
-        maxLines: 5,
-        overflow: TextOverflow.ellipsis,
-        textAlign: TextAlign.justify,
-      ),
-    ]);
-    final seasonDetailCard = ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: 240),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (season.posterPath != null)
-              (Expanded(
-                child: imageWithPlaceholder(season.getPosterUrl(), height: 300),
-              )),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: seasonInfoSection
-            )
-          ],
-        ));
-    return Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(4.0),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onSeasonCardClick,
-          child: seasonDetailCard,
-        ));
   }
 }

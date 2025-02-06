@@ -1,3 +1,5 @@
+import 'package:beestream_pedia/model/response/tv_show_episode.dart';
+
 import '../../utils/tv_show_utils.dart';
 import '../tmdb_config_enums.dart';
 
@@ -12,9 +14,9 @@ class TvShowDetail {
   bool? inProduction;
   late List<String> languages = [];
   DateTime? lastAirDate;
-  LastEpisodeToAir? lastEpisodeToAir;
+  Episode? lastEpisodeToAir;
   late final String name;
-  NextEpisodeToAir? nextEpisodeToAir;
+  Episode? nextEpisodeToAir;
   late List<Networks> networks;
   int? numberOfEpisodes;
   int? numberOfSeasons;
@@ -101,11 +103,11 @@ class TvShowDetail {
     languages = json['languages'].cast<String>();
     lastAirDate = parseDateOrNull(json["last_air_date"]);
     lastEpisodeToAir = json['last_episode_to_air'] != null
-        ? LastEpisodeToAir.fromJson(json['last_episode_to_air'])
+        ? Episode.fromJson(json['last_episode_to_air'])
         : null;
     name = json['name'];
     nextEpisodeToAir = json['next_episode_to_air'] != null
-        ? NextEpisodeToAir.fromJson(json['next_episode_to_air'])
+        ? Episode.fromJson(json['next_episode_to_air'])
         : null;
     networks = <Networks>[];
     if (json['networks'] != null) {
@@ -191,100 +193,6 @@ class Genres {
   }
 }
 
-class LastEpisodeToAir {
-  int? id;
-  String? name;
-  String? overview;
-  double? voteAverage;
-  int? voteCount;
-  String? airDate;
-  int? episodeNumber;
-  String? episodeType;
-  String? productionCode;
-  int? runtime;
-  int? seasonNumber;
-  int? showId;
-  String? stillPath;
-
-  LastEpisodeToAir(
-      {this.id,
-        this.name,
-        this.overview,
-        this.voteAverage,
-        this.voteCount,
-        this.airDate,
-        this.episodeNumber,
-        this.episodeType,
-        this.productionCode,
-        this.runtime,
-        this.seasonNumber,
-        this.showId,
-        this.stillPath});
-
-  LastEpisodeToAir.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    name = json['name'];
-    overview = json['overview'];
-    voteAverage = json['vote_average'];
-    voteCount = json['vote_count'];
-    airDate = json['air_date'];
-    episodeNumber = json['episode_number'];
-    episodeType = json['episode_type'];
-    productionCode = json['production_code'];
-    runtime = json['runtime'];
-    seasonNumber = json['season_number'];
-    showId = json['show_id'];
-    stillPath = json['still_path'];
-  }
-}
-
-class NextEpisodeToAir {
-  int? id;
-  String? name;
-  String? overview;
-  double? voteAverage;
-  int? voteCount;
-  String? airDate;
-  int? episodeNumber;
-  String? episodeType;
-  String? productionCode;
-  int? runtime;
-  int? seasonNumber;
-  int? showId;
-  String? stillPath;
-
-  NextEpisodeToAir(
-      {this.id,
-        this.name,
-        this.overview,
-        this.voteAverage,
-        this.voteCount,
-        this.airDate,
-        this.episodeNumber,
-        this.episodeType,
-        this.productionCode,
-        this.runtime,
-        this.seasonNumber,
-        this.showId,
-        this.stillPath});
-
-  NextEpisodeToAir.fromJson(Map<String, dynamic> json) {
-    id = json['id'];
-    name = json['name'];
-    overview = json['overview'];
-    voteAverage = json['vote_average'];
-    voteCount = json['vote_count'];
-    airDate = json['air_date'];
-    episodeNumber = json['episode_number'];
-    episodeType = json['episode_type'];
-    productionCode = json['production_code'];
-    runtime = json['runtime'];
-    seasonNumber = json['season_number'];
-    showId = json['show_id'];
-    stillPath = json['still_path'];
-  }
-}
-
 class Networks {
   int? id;
   String? logoPath;
@@ -330,7 +238,7 @@ class ProductionCountries {
 }
 
 class TvShowSeason {
-  late String? airDate;
+  late DateTime? airDate;
   late int episodeCount;
   late int id;
   late String name;
@@ -350,7 +258,7 @@ class TvShowSeason {
         this.voteAverage});
 
   TvShowSeason.fromJson(Map<String, dynamic> json) {
-    airDate = json['air_date'];
+    airDate = parseDateOrNull(json['air_date']);
     episodeCount = json['episode_count'] ?? 0;
     id = json['id'];
     name = json['name'] ?? "";

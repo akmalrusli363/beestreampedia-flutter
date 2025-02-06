@@ -10,7 +10,7 @@ enum TvCatalogCategory {
       Icons.trending_up,
       "https://api.themoviedb.org/3/trending/tv/week"),
   nowAiring(
-      "Now Airing",
+      "Airing Today",
       Icons.live_tv,
       "https://api.themoviedb.org/3/tv/airing_today"),
   popular(
