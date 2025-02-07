@@ -30,8 +30,7 @@ class _TvShowGridListState extends State<TvShowGridList> {
   @override
   void initState() {
     super.initState();
-    _currentPage = 1;
-    _futureTvShowList = _fetchTvShowList(_currentPage);
+    _initiateFetchUrl();
     _scrollController.addListener(_loadMoreItems);
   }
 
@@ -42,13 +41,30 @@ class _TvShowGridListState extends State<TvShowGridList> {
     super.dispose();
   }
 
+  @override
+  void didUpdateWidget(covariant TvShowGridList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.fetchUrl != widget.fetchUrl) {
+      _initiateFetchUrl();
+    }
+  }
+
+  void _initiateFetchUrl() {
+    _tvShowList.clear();
+    _currentPage = 1;
+    _futureTvShowList = _fetchTvShowList(_currentPage);
+  }
+
   Future<List<TVShowData>> _fetchTvShowList(int page) async {
+    final fetchUri = Uri.parse(widget.fetchUrl);
     final queryParameters = {
+      ...fetchUri.queryParameters,
       'page': '$page',
       'language': 'en-ID',
+      'region': 'ID',
     };
     final response = await http.get(
-      Uri.parse(widget.fetchUrl).replace(queryParameters: queryParameters),
+      fetchUri.replace(queryParameters: queryParameters),
       headers: {
         'Accept': 'application/json',
         HttpHeaders.authorizationHeader: tmdbApiKey,
@@ -87,7 +103,20 @@ class _TvShowGridListState extends State<TvShowGridList> {
         future: _futureTvShowList,
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            return buildList(context, snapshot.requireData);
+            final emptyTvShowData = Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.tv_off, size: 128),
+                    Text(
+                      "No TV series found",
+                      style: Theme.of(context).textTheme.titleLarge,
+                    )
+                  ],)
+            );
+            return (snapshot.requireData.isNotEmpty)
+                ? buildList(context, snapshot.requireData)
+                : emptyTvShowData;
           } else if (snapshot.hasError) {
             return SingleChildScrollView(
                 child: Center(
