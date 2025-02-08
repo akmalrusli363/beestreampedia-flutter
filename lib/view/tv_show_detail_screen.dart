@@ -10,6 +10,7 @@ import 'package:beestream_pedia/view/tv_show_season_list.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import '../constants/beestream_theme.dart';
 import '../constants/constants.dart';
 
 class TvShowDetailScreen extends StatefulWidget {
@@ -57,6 +58,8 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
           return Scaffold(
               appBar: AppBar(
                 title: Text(title),
+                backgroundColor: BeeStreamTheme.appTheme,
+                foregroundColor: Colors.white,
               ),
               body: Builder(builder: (context) {
                 if (snapshot.hasData) {

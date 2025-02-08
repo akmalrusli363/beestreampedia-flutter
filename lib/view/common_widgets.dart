@@ -1,6 +1,9 @@
 import 'dart:math';
 
+import 'package:beestream_pedia/model/response/tv_show_external_id_response.dart';
 import 'package:beestream_pedia/model/tmdb_locale_storage.dart';
+import 'package:beestream_pedia/model/tv_external_id.dart';
+import 'package:beestream_pedia/utils/tv_show_utils.dart';
 import 'package:dash_flags/dash_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:transparent_image/transparent_image.dart';
@@ -198,4 +201,16 @@ int getCrossAxisGridCountFromScreenSize(BuildContext context,
   final deviceWidth = MediaQuery.of(context).size.width;
   final crossAxisCount = (deviceWidth / fixedWidth).round();
   return max(minCrossAxisCount, crossAxisCount);
+}
+
+Widget? getExternalSiteButton(TvExternalIdResponse? externalId, TvExternalId site) {
+  final String? url = externalId?.getExternalUrl(site);
+  return (url != null && url.isNotEmpty) ? Tooltip(
+    message: '${site.name}: ${externalId?.getExternalAttribute(site) ?? '-'}',
+    child: FilledButton(
+      style: FilledButton.styleFrom(foregroundColor: site.fgColor, backgroundColor: site.bgColor),
+      onPressed: () { gotoSite(url); },
+      child: Text(site.name),
+    ),
+  ) : null;
 }

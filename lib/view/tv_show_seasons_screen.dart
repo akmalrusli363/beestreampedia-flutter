@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import '../constants/Constants.dart';
+import '../constants/beestream_theme.dart';
 import 'common_widgets.dart';
 
 class TvShowSeasonsDetailScreen extends StatefulWidget {
@@ -130,6 +131,8 @@ class _TvShowSeasonsDetailScreenState extends State<TvShowSeasonsDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text("${show.name} - (${item.name})"),
+        backgroundColor: BeeStreamTheme.appTheme,
+        foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
         child: Padding(
