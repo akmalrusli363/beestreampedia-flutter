@@ -1,4 +1,6 @@
+import 'package:beestream_pedia/model/response/tv_keywords_response.dart';
 import 'package:beestream_pedia/model/response/tv_show_episode.dart';
+import 'package:beestream_pedia/model/response/tv_show_external_id_response.dart';
 
 import '../../utils/tv_show_utils.dart';
 import '../tmdb_config_enums.dart';
@@ -35,6 +37,8 @@ class TvShowDetail {
   String? type;
   double? voteAverage;
   int? voteCount;
+  TvKeywordsResponse? keywords;
+  TvExternalIdResponse? externalIds;
 
   TvShowDetail(
       {this.adult,
@@ -67,7 +71,10 @@ class TvShowDetail {
         this.tagline,
         this.type,
         this.voteAverage,
-        this.voteCount});
+        this.voteCount,
+        this.keywords,
+        this.externalIds,
+      });
 
   String getPosterUrl() {
     return getTmdbImageUrl(imageUrl: posterPath, width: ImageWidthOptions.w500);
@@ -79,6 +86,10 @@ class TvShowDetail {
 
   String getFullName() {
     return (name == originalName) ? name : "$name - ($originalName)";
+  }
+
+  List<TvShowKeywords> getKeywords() {
+    return keywords?.results ?? [];
   }
 
   TvShowDetail.fromJson(Map<String, dynamic> json) {
@@ -152,6 +163,8 @@ class TvShowDetail {
     type = json['type'];
     voteAverage = json['vote_average'];
     voteCount = json['vote_count'];
+    keywords = (json['keywords'] != null) ? TvKeywordsResponse.fromJson(json['keywords']) : null;
+    externalIds = (json['external_ids'] != null) ? TvExternalIdResponse.fromJson(json['external_ids']) : null;
   }
 }
 

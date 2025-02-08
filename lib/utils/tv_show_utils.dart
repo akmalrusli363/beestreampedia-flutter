@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:beestream_pedia/model/tmdb_config_enums.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 String getLocaleString() {
   try {
@@ -38,4 +39,12 @@ DateTime? parseDateOrNull(String? dateString) {
     }
   }
   return null;
+}
+
+void gotoSite(String? url) async {
+  if (url != null && url.isNotEmpty) {
+    if (!await launchUrl(Uri.parse(url))) {
+      throw Exception('Could not launch $url');
+    }
+  }
 }

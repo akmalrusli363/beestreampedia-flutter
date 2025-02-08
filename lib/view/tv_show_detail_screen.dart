@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:beestream_pedia/model/response/tv_show_detail_response.dart';
+import 'package:beestream_pedia/model/tv_external_id.dart';
 import 'package:beestream_pedia/model/tv_show_data_wrapper.dart';
 import 'package:beestream_pedia/utils/tv_show_utils.dart';
 import 'package:beestream_pedia/view/common_widgets.dart';
@@ -9,6 +10,7 @@ import 'package:beestream_pedia/view/tv_show_episode_list.dart';
 import 'package:beestream_pedia/view/tv_show_season_list.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 
 import '../constants/beestream_theme.dart';
 import '../constants/constants.dart';
@@ -25,7 +27,10 @@ class TvShowDetailScreen extends StatefulWidget {
 class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
   Future<TvShowDetail> _fetchTvShowDetail(int tvShowId) async {
     final response = await http.get(
-      Uri.parse("https://api.themoviedb.org/3/tv/$tvShowId"),
+      Uri.parse("https://api.themoviedb.org/3/tv/$tvShowId").replace(
+          queryParameters: {
+            'append_to_response': 'keywords,translations,videos,external_ids'
+          }),
       headers: {
         'Accept': 'application/json',
         HttpHeaders.authorizationHeader: tmdbApiKey,
@@ -123,8 +128,7 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
               runSpacing: 4.0, // gap between lines,
               children: item.genres
                   .map((e) => Chip(
-                      label: Text(e.name ?? "",
-                          style: Theme.of(context).textTheme.bodySmall)))
+                      label: Text(e.name ?? "")))
                   .toList(),
             ),
           Text.rich(
@@ -142,10 +146,14 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
           ),
           Text.rich(
             TextSpan(text: '', children: [
-              TextSpan(text: 'Premiered at: ', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(
+                  text: 'Premiered at: ',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               TextSpan(text: formatDate(item.firstAirDate)),
               TextSpan(text: ' - '),
-              TextSpan(text: 'Latest air date: ', style: TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(
+                  text: 'Latest air date: ',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               TextSpan(text: formatDate(item.lastAirDate)),
             ]),
             textAlign: TextAlign.center,
@@ -174,23 +182,78 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
         ],
       ),
     );
+    final tvKeywordsSection = (item.getKeywords().isNotEmpty)
+        ? Column(
+            children: [
+              Text(
+                "Keywords:",
+                style: Theme.of(context).textTheme.titleMedium,
+                textAlign: TextAlign.center,
+              ),
+              Wrap(
+                direction: Axis.horizontal,
+                alignment: WrapAlignment.center,
+                spacing: 4.0,
+                children: item
+                    .getKeywords()
+                    .map((e) => Chip(
+                        padding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                        labelPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                        label: Text(e.name ?? "",
+                            style: Theme.of(context).textTheme.bodySmall)))
+                    .toList(),
+              ),
+            ],
+          )
+        : Container();
+    final gotoSiteButton = Tooltip(
+      message: item.homepage,
+      child: FilledButton.icon(
+          onPressed: () async {
+            if (item.homepage != null &&
+                !await launchUrl(Uri.parse(item.homepage!))) {
+              throw Exception('Could not launch ${item.homepage}');
+            }
+          },
+          icon: Icon(Icons.launch),
+          label: Text("OPEN SITE")),
+    );
+    final externalSiteButtons = [
+      getExternalSiteButton(item.externalIds, TvExternalId.imdb) ?? SizedBox(),
+      getExternalSiteButton(item.externalIds, TvExternalId.facebook) ?? SizedBox(),
+      getExternalSiteButton(item.externalIds, TvExternalId.twitter) ?? SizedBox(),
+      getExternalSiteButton(item.externalIds, TvExternalId.instagram) ?? SizedBox(),
+    ];
+    final tvSeriesActionButtons = Wrap(
+      direction: Axis.horizontal,
+      alignment: WrapAlignment.center,
+      spacing: 4.0,
+      children: [
+        if (item.homepage != null && item.homepage!.isNotEmpty)
+          gotoSiteButton,
+        if (item.externalIds != null)
+          ...externalSiteButtons,
+      ],
+    );
     final tvOverviewSection = Container(
         padding: EdgeInsets.all(16),
         child: bigTitleWithContent(
           context,
           title: "Overview",
-          child: (item.overview.isNotEmpty) ? Text(
-            item.overview,
-            style: Theme.of(context).textTheme.bodyMedium,
-            textAlign: TextAlign.justify,
-          ) : Text(
-            "No description provided for this TV series",
-            style: Theme.of(context).textTheme.bodyMedium?.apply(
-              fontStyle: FontStyle.italic
-            ),
-          ),
-        )
-    );
+          child: (item.overview.isNotEmpty)
+              ? Text(
+                  item.overview,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  textAlign: TextAlign.justify,
+                )
+              : Text(
+                  "No description provided for this TV series",
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.apply(fontStyle: FontStyle.italic),
+                ),
+        ));
     tvSeriesEpisodeOverview(title, episode) {
       if (episode != null) {
         return bigTitleWithContent(context,
@@ -206,6 +269,7 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
         return Container();
       }
     }
+
     final tvEpisodesSection = Wrap(
       alignment: WrapAlignment.center,
       spacing: 32,
@@ -226,23 +290,24 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
             seasons: item.seasons)
       ]),
     );
-    return
-      SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              imageWithPlaceholder(item.getPosterUrl(), height: 360),
-              tvMetadataInfoContainer,
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: tvMetadataMetricSection,
-              ),
-              tvOverviewSection,
-              tvEpisodesSection,
-              tvSeriesSeasonList,
-            ],
-          ),
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            imageWithPlaceholder(item.getPosterUrl(), height: 360),
+            tvMetadataInfoContainer,
+            tvKeywordsSection,
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: tvMetadataMetricSection,
+            ),
+            tvSeriesActionButtons,
+            tvOverviewSection,
+            tvEpisodesSection,
+            tvSeriesSeasonList,
+          ],
+        ),
       ),
     );
   }
