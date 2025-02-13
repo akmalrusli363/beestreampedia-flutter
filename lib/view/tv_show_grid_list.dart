@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:beestream_pedia/utils/tv_show_utils.dart';
 import 'package:beestream_pedia/view/common_widgets.dart';
 import 'package:beestream_pedia/view/tv_show_detail_screen.dart';
+import 'package:dash_flags/dash_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:http/http.dart' as http;
@@ -192,6 +193,17 @@ class TvShowCard extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
         textAlign: TextAlign.justify,
       ),
+      Text.rich(TextSpan(children: [
+        WidgetSpan(
+            child: CountryFlag(
+                country: getCountryFromCode(item.originCountry![0]),
+                height: 16)),
+        TextSpan(text: ' ${item.getFullOriginCountryName()}')
+      ])),
+      Text.rich(TextSpan(children: [
+        WidgetSpan(child: Icon(Icons.language, size: 16)),
+        TextSpan(text: ' ${item.getFullOriginLanguageName()}')
+      ])),
     ]);
     final contents = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

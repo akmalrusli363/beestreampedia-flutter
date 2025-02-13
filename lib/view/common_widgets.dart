@@ -123,18 +123,22 @@ Widget bigTitleWithContent(BuildContext context,
   );
 }
 
-Widget chipCountry(BuildContext context, String text, String countryCode) {
+Country getCountryFromCode(String countryCode) {
   final countryFlagCode =
       ({'as', 'do', 'in', 'is'}.contains(countryCode.toLowerCase()))
           ? 'c_$countryCode'
           : countryCode;
+  return Country.fromCode(countryFlagCode);
+}
+
+Widget chipCountry(BuildContext context, String text, String countryCode) {
   return Chip(
       label: Row(
     mainAxisSize: MainAxisSize.min,
     spacing: 8,
     children: [
       CountryFlag(
-        country: Country.fromCode(countryFlagCode),
+        country: getCountryFromCode(countryCode),
         height: 24,
       ),
       Flexible(
