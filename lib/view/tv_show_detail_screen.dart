@@ -101,71 +101,23 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
   Widget _detailScreenWithBackdrop(BuildContext context, TvShowDetail item) {
     double backdropHeight = 240.0;
     double portraitHeight = 360.0;
-    double expandedHeight = (backdropHeight / 2) + portraitHeight
-        - MediaQuery.of(context).padding.top;
-
-    double minExtent = kToolbarHeight + MediaQuery.of(context).padding.top;
-    double portraitY = (backdropHeight / 2) - (_scrollOffset * 3 / 4) - 16;
-
-    bool collapsed = _scrollOffset > (expandedHeight - minExtent);
 
     return CustomScrollView(
       controller: _scrollController,
       physics: BouncingScrollPhysics(),
       slivers: [
-        SliverAppBar(
-          expandedHeight: expandedHeight,
-          floating: false,
+        SliverPersistentHeader(
+          delegate: OverlapImageBackdropSliverAppBar(
+            context,
+            item: item,
+            backdropHeight: backdropHeight,
+            imageHeight: portraitHeight,
+            scrollOffset: _scrollOffset,
+          ),
           pinned: true,
-          backgroundColor: BeeStreamTheme.appTheme,
-          foregroundColor: Colors.white,
-          title: AnimatedOpacity(
-            duration: const Duration(milliseconds: 200),
-            opacity: collapsed ? 1 : 0,
-            child: Text(item.getFullName()),
-          ),
-          stretch: true,
-          flexibleSpace: LayoutBuilder(
-            builder: (context, constraints) {
-              return FlexibleSpaceBar(
-                stretchModes: [
-                  StretchMode.zoomBackground
-                ],
-                background: Stack(
-                  fit: StackFit.expand,
-                  alignment: Alignment.center,
-                  clipBehavior: Clip.none,
-                  children: [
-                    Container(color: Theme.of(context).scaffoldBackgroundColor),
-                    FractionallySizedBox(
-                      alignment: Alignment.topCenter,
-                      heightFactor: 1 / 2,
-                      child: Image.network(
-                        item.getBackdropUrl(),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    Positioned(
-                      top: backdropHeight - _scrollOffset,
-                      child: Container(
-                        height: expandedHeight,
-                        width: MediaQuery.of(context).size.width,
-                        color: Theme.of(context).scaffoldBackgroundColor,
-                      ),
-                    ),
-                    Positioned(
-                      top: portraitY,
-                      child: Card(
-        		             elevation: 4,
-        		             clipBehavior: Clip.antiAlias,
-        		             child: Image.network(item.getPosterUrl(), height: portraitHeight),
-        		           ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
+        ),
+        SliverToBoxAdapter(
+          child: SizedBox(height: portraitHeight / 2),
         ),
         SliverToBoxAdapter(child: _detailScreen(context, item)),
       ],
