@@ -1,6 +1,7 @@
 import 'dart:core';
 
 import 'package:beestream_pedia/model/tmdb_config_enums.dart';
+import 'package:beestream_pedia/model/tmdb_locale_storage.dart';
 import 'package:beestream_pedia/utils/tv_show_utils.dart';
 
 class TVShowData {
@@ -42,6 +43,14 @@ class TVShowData {
 
   String getBackdropUrl() {
     return getTmdbImageUrl(imageUrl: backdropPath);
+  }
+
+  String? getFullOriginCountryName() {
+    return LocaleStorage().getCountryName(originCountry![0]);
+  }
+
+  String? getFullOriginLanguageName() {
+    return LocaleStorage().getLanguageName(originalLanguage);
   }
 
   TVShowData.fromJson(Map<String, dynamic> json)

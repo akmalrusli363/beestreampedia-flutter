@@ -54,18 +54,23 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final Future<TvShowDetail> fItem = _fetchTvShowDetail(widget.tvShowId);
+    getTitle(AsyncSnapshot snapshot) {
+      return (snapshot.hasData)
+          ? snapshot.requireData.getFullName()
+          : "TV Show Information";
+    }
+
     return FutureBuilder<TvShowDetail>(
         future: fItem,
         builder: (context, snapshot) {
-          final String title = (snapshot.hasData)
-              ? snapshot.requireData.getFullName()
-              : "TV Show Information";
           return Scaffold(
-              appBar: AppBar(
-                title: Text(title),
-                backgroundColor: BeeStreamTheme.appTheme,
-                foregroundColor: Colors.white,
-              ),
+              appBar: (!snapshot.hasData)
+                  ? AppBar(
+                      title: Text(getTitle(snapshot)),
+                      backgroundColor: BeeStreamTheme.appTheme,
+                      foregroundColor: Colors.white,
+                    )
+                  : null,
               body: Builder(builder: (context) {
                 if (snapshot.hasData) {
                   return _detailScreen(context, snapshot.requireData);
@@ -127,8 +132,7 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
               spacing: 8.0, // gap between adjacent chips
               runSpacing: 4.0, // gap between lines,
               children: item.genres
-                  .map((e) => Chip(
-                      label: Text(e.name ?? "")))
+                  .map((e) => Chip(label: Text(e.name ?? "")))
                   .toList(),
             ),
           Text.rich(
@@ -229,10 +233,8 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
       alignment: WrapAlignment.center,
       spacing: 4.0,
       children: [
-        if (item.homepage != null && item.homepage!.isNotEmpty)
-          gotoSiteButton,
-        if (item.externalIds != null)
-          ...externalSiteButtons,
+        if (item.homepage != null && item.homepage!.isNotEmpty) gotoSiteButton,
+        if (item.externalIds != null) ...externalSiteButtons,
       ],
     );
     final tvOverviewSection = Container(
@@ -273,6 +275,7 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
     final tvEpisodesSection = Wrap(
       alignment: WrapAlignment.center,
       spacing: 32,
+      runSpacing: 16,
       children: [
         tvSeriesEpisodeOverview("Latest Episode", item.lastEpisodeToAir),
         tvSeriesEpisodeOverview("Upcoming Episode", item.nextEpisodeToAir),
