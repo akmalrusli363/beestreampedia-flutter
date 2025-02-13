@@ -6,6 +6,7 @@ import 'package:beestream_pedia/model/tv_external_id.dart';
 import 'package:beestream_pedia/model/tv_show_data_wrapper.dart';
 import 'package:beestream_pedia/utils/tv_show_utils.dart';
 import 'package:beestream_pedia/view/common_widgets.dart';
+import 'package:beestream_pedia/view/silver_header_widgets.dart';
 import 'package:beestream_pedia/view/tv_show_episode_list.dart';
 import 'package:beestream_pedia/view/tv_show_season_list.dart';
 import 'package:flutter/material.dart';
@@ -51,6 +52,20 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
     }
   }
 
+  late ScrollController _scrollController;
+  double _scrollOffset = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    _scrollController.addListener(() {
+      setState(() {
+        _scrollOffset = _scrollController.offset;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final Future<TvShowDetail> fItem = _fetchTvShowDetail(widget.tvShowId);
@@ -73,13 +88,88 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
                   : null,
               body: Builder(builder: (context) {
                 if (snapshot.hasData) {
-                  return _detailScreen(context, snapshot.requireData);
+                  return _detailScreenWithBackdrop(
+                      context, snapshot.requireData);
                 } else if (snapshot.hasError) {
                   return errorWithStackTrace(context, snapshot);
                 }
                 return const Center(child: CircularProgressIndicator());
               }));
         });
+  }
+
+  Widget _detailScreenWithBackdrop(BuildContext context, TvShowDetail item) {
+    double backdropHeight = 240.0;
+    double portraitHeight = 360.0;
+    double expandedHeight = (backdropHeight / 2) + portraitHeight
+        - MediaQuery.of(context).padding.top;
+
+    double minExtent = kToolbarHeight + MediaQuery.of(context).padding.top;
+    double portraitY = (backdropHeight / 2) - (_scrollOffset * 3 / 4) - 16;
+
+    bool collapsed = _scrollOffset > (expandedHeight - minExtent);
+
+    return CustomScrollView(
+      controller: _scrollController,
+      physics: BouncingScrollPhysics(),
+      slivers: [
+        SliverAppBar(
+          expandedHeight: expandedHeight,
+          floating: false,
+          pinned: true,
+          backgroundColor: BeeStreamTheme.appTheme,
+          foregroundColor: Colors.white,
+          title: AnimatedOpacity(
+            duration: const Duration(milliseconds: 200),
+            opacity: collapsed ? 1 : 0,
+            child: Text(item.getFullName()),
+          ),
+          stretch: true,
+          flexibleSpace: LayoutBuilder(
+            builder: (context, constraints) {
+              return FlexibleSpaceBar(
+                stretchModes: [
+                  StretchMode.zoomBackground
+                ],
+                background: Stack(
+                  fit: StackFit.expand,
+                  alignment: Alignment.center,
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(color: Theme.of(context).scaffoldBackgroundColor),
+                    FractionallySizedBox(
+                      alignment: Alignment.topCenter,
+                      heightFactor: 1 / 2,
+                      child: Image.network(
+                        item.getBackdropUrl(),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    Positioned(
+                      top: backdropHeight - _scrollOffset,
+                      child: Container(
+                        height: expandedHeight,
+                        width: MediaQuery.of(context).size.width,
+                        color: Theme.of(context).scaffoldBackgroundColor,
+                      ),
+                    ),
+                    Positioned(
+                      top: portraitY,
+                      child: Card(
+        		             elevation: 4,
+        		             clipBehavior: Clip.antiAlias,
+        		             child: Image.network(item.getPosterUrl(), height: portraitHeight),
+        		           ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+        SliverToBoxAdapter(child: _detailScreen(context, item)),
+      ],
+    );
   }
 
   Widget _detailScreen(BuildContext context, TvShowDetail item) {
@@ -298,7 +388,6 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            imageWithPlaceholder(item.getPosterUrl(), height: 360),
             tvMetadataInfoContainer,
             tvKeywordsSection,
             Padding(
