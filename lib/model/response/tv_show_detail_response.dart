@@ -81,7 +81,7 @@ class TvShowDetail {
   }
 
   String getBackdropUrl() {
-    return getTmdbImageUrl(imageUrl: backdropPath);
+    return getTmdbImageUrl(imageUrl: backdropPath, width: ImageWidthOptions.w780);
   }
 
   String getFullName() {
