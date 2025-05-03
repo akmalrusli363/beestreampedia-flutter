@@ -18,9 +18,11 @@ class TvShowSeasonCardList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final haveImages = seasons.any((e) => e.posterPath?.isNotEmpty == true);
     seasonCard(index) => TvShowSeasonCard(
         context: context,
         season: seasons[index],
+        haveImages: haveImages,
         onSeasonCardClick: () {
           Navigator.push(
             context,
@@ -28,11 +30,12 @@ class TvShowSeasonCardList extends StatelessWidget {
                 wrapper, (seasons[index].seasonNumber ?? 0)),
           );
         });
+    final cardHeight = (haveImages) ? TvShowSeasonCard.getCardHeight() : TvShowSeasonCard.descriptionHeight + 8;
     final seasonsListCard = ConstrainedBox(
-      constraints: const BoxConstraints(maxHeight: 450),
+      constraints: BoxConstraints(maxHeight: cardHeight),
       child: ListView.builder(
           scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           itemCount: seasons.length,
           shrinkWrap: true,
           itemBuilder: (context, index) {
@@ -46,16 +49,16 @@ class TvShowSeasonCardList extends StatelessWidget {
     return PageRouteBuilder(
       pageBuilder: (context, animation, secondaryAnimation) =>
           TvShowSeasonsDetailScreen(
-            tvShowData: wrapper,
-            seasonNo: seasonNo,
-          ),
+        tvShowData: wrapper,
+        seasonNo: seasonNo,
+      ),
       transitionsBuilder: (context, animation, secondaryAnimation, child) {
         const begin = Offset(0.0, 1.0);
         const end = Offset.zero;
         const curve = Curves.ease;
 
         var tween =
-        Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
 
         return SlideTransition(
           position: animation.drive(tween),
@@ -71,15 +74,27 @@ class TvShowSeasonCard extends StatelessWidget {
     super.key,
     required this.context,
     required this.season,
+    this.haveImages = true,
     required this.onSeasonCardClick,
   });
 
+  static const double posterHeight = 320;
+  static const double descriptionHeight = 180;
+
   final BuildContext context;
   final TvShowSeason season;
+  final bool haveImages;
   final void Function() onSeasonCardClick;
+
+  static double getCardHeight() {
+    return posterHeight + descriptionHeight + 8;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final seasonNumbering = season.seasonNumber == 0
+        ? "Bonus/Specials"
+        : "Season ${season.seasonNumber}";
     final seasonInfoSection = Column(children: [
       Text(
         season.name,
@@ -93,17 +108,20 @@ class TvShowSeasonCard extends StatelessWidget {
           textAlign: TextAlign.center,
         )),
       Text(
-        "Season ${season.seasonNumber} - ${season.episodeCount} episodes",
-        style: Theme.of(context).textTheme.titleMedium
+        "$seasonNumbering - ${season.episodeCount} episodes",
+        style: Theme.of(context)
+            .textTheme
+            .titleMedium
             ?.apply(fontStyle: FontStyle.italic),
         textAlign: TextAlign.center,
       ),
-      Text(
-        season.overview,
-        style: Theme.of(context).textTheme.bodySmall,
-        maxLines: 5,
-        overflow: TextOverflow.ellipsis,
-        textAlign: TextAlign.justify,
+      SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: Text(
+          season.overview,
+          style: Theme.of(context).textTheme.bodySmall,
+          textAlign: TextAlign.justify,
+        ),
       ),
     ]);
     final seasonDetailCard = ConstrainedBox(
@@ -111,13 +129,24 @@ class TvShowSeasonCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (season.posterPath != null)
-              (Expanded(
-                child: imageWithPlaceholder(season.getPosterUrl(), height: 300),
-              )),
-            Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: seasonInfoSection
+            if (haveImages)
+              SizedBox(
+                  height: posterHeight, // Fixed height for the image
+                  child: Builder(builder: (context) {
+                    if (season.posterPath != null) {
+                      return imageWithPlaceholder(season.getPosterUrl(),
+                          height: posterHeight, fillWidth: true);
+                    }
+                    return SizedBox();
+                  })),
+            SizedBox(
+              height: descriptionHeight,
+              child: SingleChildScrollView(
+                  child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: seasonInfoSection
+                  ),
+              ),
             )
           ],
         ));

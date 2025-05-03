@@ -46,7 +46,7 @@ class _TvShowCatalogueScreenState extends State<TvShowCatalogueScreen> {
         actions: [
           IconButton(onPressed: () {
             Navigator.push(context, _gotoSearchScreen());
-          }, icon: Icon(Icons.search))
+          }, icon: Icon(Icons.search), padding: EdgeInsetsDirectional.symmetric(horizontal: 16.0),)
         ],
       ),
       body: PageView.builder(

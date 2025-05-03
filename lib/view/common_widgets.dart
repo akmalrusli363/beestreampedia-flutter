@@ -150,7 +150,7 @@ Widget chipCountry(BuildContext context, String text, String countryCode) {
   ));
 }
 
-Widget imageWithPlaceholder(String url, {double? height}) {
+Widget imageWithPlaceholder(String url, {double? height, bool fillWidth = false}) {
   final double minEmptyImageHeight = 120;
   return Stack(alignment: Alignment.center, children: <Widget>[
     Center(child: CircularProgressIndicator()),
@@ -163,7 +163,8 @@ Widget imageWithPlaceholder(String url, {double? height}) {
       ),
       image: url,
       height: height,
-      fit: BoxFit.cover,
+      width: fillWidth ? double.infinity : null,
+      fit: fillWidth ? BoxFit.fill : BoxFit.cover,
     ),
   ]);
 }
