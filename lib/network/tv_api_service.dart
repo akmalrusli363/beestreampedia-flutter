@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
-import '../constants/Constants.dart';
+import '../constants/constants.dart';
 import '../model/response/tv_seasons_detail_response.dart';
 import '../model/response/tv_show_detail_response.dart';
 import '../model/response/tv_show_list_response.dart';
