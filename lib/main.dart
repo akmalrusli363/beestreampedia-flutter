@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:beestream_pedia/constants/beestream_theme.dart';
-import 'package:beestream_pedia/view/tv_show_catalogue_screen.dart';
+import 'package:beestream_pedia/paging/app_router.dart';
 import 'package:flutter/material.dart';
 
 import 'model/tmdb_locale_storage.dart';
@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'Beestream Pedia',
       theme: ThemeData(
         // This is the theme of your application.
@@ -34,7 +34,8 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: BeeStreamTheme.appTheme,
       ),
-      home: const TvShowCatalogueScreen(title: 'Flutter Demo Home Page'),
+      routerConfig: appRouter,
+      debugShowCheckedModeBanner: false,
     );
   }
 }

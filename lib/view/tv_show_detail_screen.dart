@@ -17,7 +17,7 @@ import '../constants/beestream_theme.dart';
 import '../constants/constants.dart';
 
 class TvShowDetailScreen extends StatefulWidget {
-  final int tvShowId;
+  final String tvShowId;
 
   const TvShowDetailScreen({super.key, required this.tvShowId});
 
@@ -26,7 +26,7 @@ class TvShowDetailScreen extends StatefulWidget {
 }
 
 class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
-  Future<TvShowDetail> _fetchTvShowDetail(int tvShowId) async {
+  Future<TvShowDetail> _fetchTvShowDetail(String tvShowId) async {
     final response = await http.get(
       Uri.parse("https://api.themoviedb.org/3/tv/$tvShowId").replace(
           queryParameters: {

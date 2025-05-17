@@ -3,10 +3,10 @@ import 'dart:io';
 
 import 'package:beestream_pedia/utils/tv_show_utils.dart';
 import 'package:beestream_pedia/view/common_widgets.dart';
-import 'package:beestream_pedia/view/tv_show_detail_screen.dart';
 import 'package:dash_flags/dash_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:go_router/go_router.dart';
 import 'package:http/http.dart' as http;
 
 import '../constants/constants.dart';
@@ -224,33 +224,8 @@ class TvShowCard extends StatelessWidget {
         child: InkWell(
             child: contents,
             onTap: () {
-              Navigator.push(
-                context,
-                _gotoShowDetailScreen(item.id),
-              );
+              context.goNamed('detail', pathParameters: {'seriesId': "${item.id}"});
             }
     ));
-  }
-
-  Route _gotoShowDetailScreen(int tvShowId) {
-    return PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) =>
-          TvShowDetailScreen(
-            tvShowId: tvShowId,
-          ),
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        const begin = Offset(0.0, 1.0);
-        const end = Offset.zero;
-        const curve = Curves.ease;
-
-        var tween =
-        Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-
-        return SlideTransition(
-          position: animation.drive(tween),
-          child: child,
-        );
-      },
-    );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../model/response/tv_show_detail_response.dart';
 import '../model/tv_show_data_wrapper.dart';
@@ -19,18 +20,20 @@ class TvShowSeasonCardList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final haveImages = seasons.any((e) => e.posterPath?.isNotEmpty == true);
-    seasonCard(index) => TvShowSeasonCard(
-        context: context,
-        season: seasons[index],
-        haveImages: haveImages,
-        onSeasonCardClick: () {
-          Navigator.push(
-            context,
-            _gotoSeasonDetailScreen(
-                wrapper, (seasons[index].seasonNumber ?? 0)),
-          );
-        });
-    final cardHeight = (haveImages) ? TvShowSeasonCard.getCardHeight() : TvShowSeasonCard.descriptionHeight + 8;
+    seasonCard(index) =>
+        TvShowSeasonCard(
+            context: context,
+            season: seasons[index],
+            haveImages: haveImages,
+            onSeasonCardClick: () {
+              context.goNamed(
+                'seasonDetail',
+                extra: wrapper,
+                pathParameters: {'seriesId': "${wrapper.id}", 'seasonId': "${seasons[index].seasonNumber ?? 0}"});
+            });
+    final cardHeight = (haveImages)
+        ? TvShowSeasonCard.getCardHeight()
+        : TvShowSeasonCard.descriptionHeight + 8;
     final seasonsListCard = ConstrainedBox(
       constraints: BoxConstraints(maxHeight: cardHeight),
       child: ListView.builder(
@@ -43,29 +46,6 @@ class TvShowSeasonCardList extends StatelessWidget {
           }),
     );
     return (seasons.isNotEmpty) ? seasonsListCard : Container();
-  }
-
-  Route _gotoSeasonDetailScreen(TVShowDataWrapper wrapper, int seasonNo) {
-    return PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) =>
-          TvShowSeasonsDetailScreen(
-        tvShowData: wrapper,
-        seasonNo: seasonNo,
-      ),
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        const begin = Offset(0.0, 1.0);
-        const end = Offset.zero;
-        const curve = Curves.ease;
-
-        var tween =
-            Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-
-        return SlideTransition(
-          position: animation.drive(tween),
-          child: child,
-        );
-      },
-    );
   }
 }
 

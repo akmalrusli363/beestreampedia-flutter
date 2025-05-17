@@ -6,6 +6,7 @@ import 'package:beestream_pedia/model/tv_external_id.dart';
 import 'package:beestream_pedia/utils/tv_show_utils.dart';
 import 'package:dash_flags/dash_flags.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:transparent_image/transparent_image.dart';
 
 Widget bigNumberWithCaptions(BuildContext context, num number, String caption) {
@@ -181,6 +182,28 @@ Widget emptyImagePlaceholder(
         placeholderIcon,
         size: iconSize,
       ));
+}
+
+Widget errorRouter(BuildContext context, GoRouterState state) {
+  return SingleChildScrollView(
+      child: Center(
+    child: (Column(
+      children: [
+        Text(
+          'Page not found!',
+          style: Theme.of(context).textTheme.headlineSmall,
+        ),
+        Text(
+          'Path: ${state.path}\nParameters: ${state.pathParameters}',
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
+        ElevatedButton(
+          onPressed: () => {context.go("/")},
+          child: const Text('Back to homepage'),
+        ),
+      ],
+    )),
+  ));
 }
 
 Widget errorWithStackTrace<T>(BuildContext context, AsyncSnapshot<T> snapshot) {

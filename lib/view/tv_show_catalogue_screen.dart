@@ -1,5 +1,6 @@
 import 'package:beestream_pedia/view/tv_search_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import '../constants/beestream_theme.dart';
 import '../model/tv_catalog_category.dart';
@@ -45,7 +46,7 @@ class _TvShowCatalogueScreenState extends State<TvShowCatalogueScreen> {
         foregroundColor: Colors.white,
         actions: [
           IconButton(onPressed: () {
-            Navigator.push(context, _gotoSearchScreen());
+            context.goNamed('search');
           }, icon: Icon(Icons.search), padding: EdgeInsetsDirectional.symmetric(horizontal: 16.0),)
         ],
       ),
@@ -58,26 +59,6 @@ class _TvShowCatalogueScreenState extends State<TvShowCatalogueScreen> {
       ),
       bottomNavigationBar:
           buildBottomNavigationBar(context, _onItemTapped, _selectedIndex),
-    );
-  }
-
-  Route _gotoSearchScreen() {
-    return PageRouteBuilder(
-      pageBuilder: (context, animation, secondaryAnimation) =>
-          TvSearchScreen(),
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        const begin = Offset(1.0, 0.0);
-        const end = Offset.zero;
-        const curve = Curves.ease;
-
-        var tween =
-        Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-
-        return SlideTransition(
-          position: animation.drive(tween),
-          child: child,
-        );
-      },
     );
   }
 

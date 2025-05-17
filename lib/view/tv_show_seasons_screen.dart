@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:beestream_pedia/model/response/tv_seasons_detail_response.dart';
+import 'package:beestream_pedia/model/response/tv_show_detail_response.dart';
 import 'package:beestream_pedia/model/tv_show_data_wrapper.dart';
 import 'package:beestream_pedia/utils/tv_show_utils.dart';
 import 'package:beestream_pedia/view/tv_show_episode_list.dart';
@@ -13,18 +14,55 @@ import '../constants/beestream_theme.dart';
 import 'common_widgets.dart';
 
 class TvShowSeasonsDetailScreen extends StatefulWidget {
-  final TVShowDataWrapper tvShowData;
+  final TVShowDataWrapper? tvShowData;
+  final int seriesId;
   final int seasonNo;
 
   const TvShowSeasonsDetailScreen(
-      {super.key, required this.tvShowData, required this.seasonNo});
+      {super.key,
+      required this.seriesId,
+      required this.seasonNo,
+      required this.tvShowData});
 
   @override
   State<TvShowSeasonsDetailScreen> createState() =>
       _TvShowSeasonsDetailScreenState();
 }
 
+class TvSeasonDataWrapper {
+  final TVShowDataWrapper series;
+  final TvSeasonsDetail season;
+
+  TvSeasonDataWrapper({
+    required this.series,
+    required this.season,
+  });
+}
+
 class _TvShowSeasonsDetailScreenState extends State<TvShowSeasonsDetailScreen> {
+  Future<TvShowDetail> _fetchTvShowDetail(String tvShowId) async {
+    final response = await http.get(
+      Uri.parse("https://api.themoviedb.org/3/tv/$tvShowId"),
+      headers: {
+        'Accept': 'application/json',
+        HttpHeaders.authorizationHeader: tmdbApiKey,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      // If the server did return a 200 OK response,
+      // then parse the JSON.
+      Map<String, dynamic> jsonData =
+          jsonDecode(response.body) as Map<String, dynamic>;
+      final fetchedData = TvShowDetail.fromJson(jsonData);
+      return fetchedData;
+    } else {
+      // If the server did not return a 200 OK response,
+      // then throw an exception.
+      throw Exception('Failed to load TV show detail');
+    }
+  }
+
   Future<TvSeasonsDetail> _fetchTvSeasonsDetail(
       int tvShowId, int season) async {
     final response = await http.get(
@@ -44,16 +82,24 @@ class _TvShowSeasonsDetailScreenState extends State<TvShowSeasonsDetailScreen> {
     }
   }
 
+  Future<TvSeasonDataWrapper> _fetchTvSeriesDetail() async {
+    final seriesData = widget.tvShowData ??
+        TVShowDataWrapper.fromTvShowDetail(
+            await _fetchTvShowDetail("${widget.seriesId}"));
+    final seasonData =
+        await _fetchTvSeasonsDetail(widget.seriesId, widget.seasonNo);
+    return TvSeasonDataWrapper(series: seriesData, season: seasonData);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final Future<TvSeasonsDetail> fItem =
-        _fetchTvSeasonsDetail(widget.tvShowData.id, widget.seasonNo);
-    return FutureBuilder<TvSeasonsDetail>(
+    final Future<TvSeasonDataWrapper> fItem = _fetchTvSeriesDetail();
+    return FutureBuilder<TvSeasonDataWrapper>(
         future: fItem,
         builder: (context, snapshot) {
           if (snapshot.hasData) {
-            return _detailScreen(
-                context, widget.tvShowData, snapshot.requireData);
+            return _detailScreen(context, snapshot.requireData.series,
+                snapshot.requireData.season);
           } else if (snapshot.hasError) {
             return errorWithStackTrace(context, snapshot);
           }
