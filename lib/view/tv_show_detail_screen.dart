@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:beestream_pedia/model/response/tv_show_detail_response.dart';
 import 'package:beestream_pedia/model/tv_external_id.dart';
 import 'package:beestream_pedia/model/tv_show_data_wrapper.dart';
+import 'package:beestream_pedia/network/tv_api_service.dart';
 import 'package:beestream_pedia/utils/tv_show_utils.dart';
 import 'package:beestream_pedia/view/common_widgets.dart';
 import 'package:beestream_pedia/view/silver_header_widgets.dart';
@@ -26,32 +27,6 @@ class TvShowDetailScreen extends StatefulWidget {
 }
 
 class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
-  Future<TvShowDetail> _fetchTvShowDetail(String tvShowId) async {
-    final response = await http.get(
-      Uri.parse("https://api.themoviedb.org/3/tv/$tvShowId").replace(
-          queryParameters: {
-            'append_to_response': 'keywords,translations,videos,external_ids'
-          }),
-      headers: {
-        'Accept': 'application/json',
-        HttpHeaders.authorizationHeader: tmdbApiKey,
-      },
-    );
-
-    if (response.statusCode == 200) {
-      // If the server did return a 200 OK response,
-      // then parse the JSON.
-      Map<String, dynamic> jsonData =
-          jsonDecode(response.body) as Map<String, dynamic>;
-      final fetchedData = TvShowDetail.fromJson(jsonData);
-      return fetchedData;
-    } else {
-      // If the server did not return a 200 OK response,
-      // then throw an exception.
-      throw Exception('Failed to load TV show detail');
-    }
-  }
-
   late ScrollController _scrollController;
   double _scrollOffset = 0.0;
 
@@ -68,7 +43,7 @@ class _TvShowDetailScreenState extends State<TvShowDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final Future<TvShowDetail> fItem = _fetchTvShowDetail(widget.tvShowId);
+    final Future<TvShowDetail> fItem = TvApiService.fetchTvShowDetail(widget.tvShowId);
     getTitle(AsyncSnapshot snapshot) {
       return (snapshot.hasData)
           ? snapshot.requireData.getFullName()

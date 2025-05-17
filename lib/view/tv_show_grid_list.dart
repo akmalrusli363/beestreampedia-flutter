@@ -1,16 +1,11 @@
-import 'dart:convert';
-import 'dart:io';
-
+import 'package:beestream_pedia/network/tv_api_service.dart';
 import 'package:beestream_pedia/utils/tv_show_utils.dart';
 import 'package:beestream_pedia/view/common_widgets.dart';
 import 'package:dash_flags/dash_flags.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:go_router/go_router.dart';
-import 'package:http/http.dart' as http;
 
-import '../constants/constants.dart';
-import '../model/response/tv_show_list_response.dart';
 import '../model/tv_show_data.dart';
 
 class TvShowGridList extends StatefulWidget {
@@ -31,7 +26,7 @@ class _TvShowGridListState extends State<TvShowGridList> {
   @override
   void initState() {
     super.initState();
-    _initiateFetchUrl();
+    _futureTvShowList = _initiateFetchUrl();
     _scrollController.addListener(_loadMoreItems);
   }
 
@@ -46,54 +41,31 @@ class _TvShowGridListState extends State<TvShowGridList> {
   void didUpdateWidget(covariant TvShowGridList oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.fetchUrl != widget.fetchUrl) {
-      _initiateFetchUrl();
+      _futureTvShowList = _initiateFetchUrl();
     }
   }
 
-  void _initiateFetchUrl() {
+  Future<List<TVShowData>> _initiateFetchUrl() async {
     _tvShowList.clear();
     _currentPage = 1;
-    _futureTvShowList = _fetchTvShowList(_currentPage);
+    final result = await TvApiService.fetchTvShowList(widget.fetchUrl, _currentPage);
+    _tvShowList.addAll(result);
+    return _tvShowList;
   }
 
-  Future<List<TVShowData>> _fetchTvShowList(int page) async {
-    final fetchUri = Uri.parse(widget.fetchUrl);
-    final queryParameters = {
-      ...fetchUri.queryParameters,
-      'page': '$page',
-      'language': 'en-ID',
-      'region': 'ID',
-    };
-    final response = await http.get(
-      fetchUri.replace(queryParameters: queryParameters),
-      headers: {
-        'Accept': 'application/json',
-        HttpHeaders.authorizationHeader: tmdbApiKey,
-      },
-    );
-
-    if (response.statusCode == 200) {
-      // If the server did return a 200 OK response,
-      // then parse the JSON.
-      Map<String, dynamic> jsonData =
-          jsonDecode(response.body) as Map<String, dynamic>;
-      final fetchedData = TVShowListResponse.fromJson(jsonData).results;
-      _tvShowList.addAll(fetchedData);
-      return _tvShowList;
-    } else {
-      // If the server did not return a 200 OK response,
-      // then throw an exception.
-      throw Exception('Failed to load TV show list');
-    }
+  Future<List<TVShowData>> _fetchMorePage() async {
+    _currentPage += 1;
+    final result = await TvApiService.fetchTvShowList(widget.fetchUrl, _currentPage);
+    _tvShowList.addAll(result);
+    return _tvShowList;
   }
 
-  void _loadMoreItems() {
+  void _loadMoreItems() async {
     if (_scrollController.position.pixels ==
         _scrollController.position.maxScrollExtent) {
       setState(() {
-        _currentPage += 1;
         debugPrint("continue pagination to $_currentPage...");
-        _fetchTvShowList(_currentPage);
+        _futureTvShowList = _fetchMorePage();
       });
     }
   }
@@ -105,15 +77,16 @@ class _TvShowGridListState extends State<TvShowGridList> {
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             final emptyTvShowData = Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.tv_off, size: 128),
-                    Text(
-                      "No TV series found",
-                      style: Theme.of(context).textTheme.titleLarge,
-                    )
-                  ],)
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.tv_off, size: 128),
+                  Text(
+                    "No TV series found",
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ],
+              ),
             );
             return (snapshot.requireData.isNotEmpty)
                 ? buildList(context, snapshot.requireData)

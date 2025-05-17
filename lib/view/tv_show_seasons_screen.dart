@@ -1,15 +1,10 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:beestream_pedia/model/response/tv_seasons_detail_response.dart';
-import 'package:beestream_pedia/model/response/tv_show_detail_response.dart';
 import 'package:beestream_pedia/model/tv_show_data_wrapper.dart';
+import 'package:beestream_pedia/network/tv_api_service.dart';
 import 'package:beestream_pedia/utils/tv_show_utils.dart';
 import 'package:beestream_pedia/view/tv_show_episode_list.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
-import '../constants/Constants.dart';
 import '../constants/beestream_theme.dart';
 import 'common_widgets.dart';
 
@@ -40,54 +35,12 @@ class TvSeasonDataWrapper {
 }
 
 class _TvShowSeasonsDetailScreenState extends State<TvShowSeasonsDetailScreen> {
-  Future<TvShowDetail> _fetchTvShowDetail(String tvShowId) async {
-    final response = await http.get(
-      Uri.parse("https://api.themoviedb.org/3/tv/$tvShowId"),
-      headers: {
-        'Accept': 'application/json',
-        HttpHeaders.authorizationHeader: tmdbApiKey,
-      },
-    );
-
-    if (response.statusCode == 200) {
-      // If the server did return a 200 OK response,
-      // then parse the JSON.
-      Map<String, dynamic> jsonData =
-          jsonDecode(response.body) as Map<String, dynamic>;
-      final fetchedData = TvShowDetail.fromJson(jsonData);
-      return fetchedData;
-    } else {
-      // If the server did not return a 200 OK response,
-      // then throw an exception.
-      throw Exception('Failed to load TV show detail');
-    }
-  }
-
-  Future<TvSeasonsDetail> _fetchTvSeasonsDetail(
-      int tvShowId, int season) async {
-    final response = await http.get(
-      Uri.parse("https://api.themoviedb.org/3/tv/$tvShowId/season/$season"),
-      headers: {
-        'Accept': 'application/json',
-        HttpHeaders.authorizationHeader: tmdbApiKey,
-      },
-    );
-
-    if (response.statusCode == 200) {
-      Map<String, dynamic> jsonData =
-          jsonDecode(response.body) as Map<String, dynamic>;
-      return TvSeasonsDetail.fromJson(jsonData);
-    } else {
-      throw Exception('Failed to load TV season detail');
-    }
-  }
-
   Future<TvSeasonDataWrapper> _fetchTvSeriesDetail() async {
     final seriesData = widget.tvShowData ??
         TVShowDataWrapper.fromTvShowDetail(
-            await _fetchTvShowDetail("${widget.seriesId}"));
-    final seasonData =
-        await _fetchTvSeasonsDetail(widget.seriesId, widget.seasonNo);
+            await TvApiService.fetchTvShowDetail("${widget.seriesId}"));
+    final seasonData = await TvApiService.fetchTvSeasonsDetail(
+        widget.seriesId, widget.seasonNo);
     return TvSeasonDataWrapper(series: seriesData, season: seasonData);
   }
 
