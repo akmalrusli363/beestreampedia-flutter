@@ -13,10 +13,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Obtain API Key
+        run: |
+          echo "const String tmdbApiKey = '${{ secrets.TMDB_API_KEY }}';" > lib/constants/constants.dart
+
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: 'stable'
+          flutter-version: stable
 
       - name: Install dependencies
         run: flutter pub get
